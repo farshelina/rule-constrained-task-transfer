@@ -1,0 +1,8 @@
+﻿benchmark,relationship,size,task_structure,role
+Public BBH subsets,Public benchmark exploration,,Logical deduction and shuffled-object tracking subsets.,Pilot public evaluation
+Initial ACL Bench,First self-developed benchmark,300,"Hierarchy Logic, Pattern Recognition and Counter Logic.",Central prototype
+Multi-hop ACL,ACL hierarchy extension,600,"1-hop, 2-hop and 3-hop transitive reasoning.",Exploratory branch
+Struct Bench v1,ACL structural-transfer extension,300,"Legality, abstraction and analogy.",Exploratory branch
+Struct Bench v2,Struct Bench domain extension,600,"Abstract-symbol and card-symbol versions of legality, abstraction and analogy.",Exploratory branch
+Anomaly Bench,ACL pattern-recognition extension,300,"Broken straight, broken pair and intruder detection.",Exploratory branch
+Final repaired ACL Bench,Refined primary benchmark,300,"Balanced and diversified Hierarchy, Pattern and Counter tasks.",Primary evaluation

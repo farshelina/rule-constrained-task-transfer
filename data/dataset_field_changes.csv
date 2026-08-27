@@ -1,0 +1,53 @@
+﻿sequence,version,field,changed_fields_from_previous
+1,Initial 1:10 mix,instruction,
+1,Initial 1:10 mix,input,
+1,Initial 1:10 mix,output,
+1,Initial 1:10 mix,system,
+2,Repaired mix,instruction,54503.0
+2,Repaired mix,input,38476.0
+2,Repaired mix,output,55000.0
+2,Repaired mix,system,55000.0
+3,Refined v2,instruction,54951.0
+3,Refined v2,input,38951.0
+3,Refined v2,output,55496.0
+3,Refined v2,system,55500.0
+4,v3 cleaned,instruction,5500.0
+4,v3 cleaned,input,0.0
+4,v3 cleaned,output,3556.0
+4,v3 cleaned,system,55900.0
+5,v3 snapshot,instruction,0.0
+5,v3 snapshot,input,0.0
+5,v3 snapshot,output,0.0
+5,v3 snapshot,system,0.0
+6,v4 polished,instruction,0.0
+6,v4 polished,input,0.0
+6,v4 polished,output,4723.0
+6,v4 polished,system,0.0
+7,v5,instruction,0.0
+7,v5,input,0.0
+7,v5,output,694.0
+7,v5,system,0.0
+8,v6,instruction,0.0
+8,v6,input,0.0
+8,v6,output,1192.0
+8,v6,system,0.0
+9,v7 behavioral,instruction,0.0
+9,v7 behavioral,input,0.0
+9,v7 behavioral,output,650.0
+9,v7 behavioral,system,0.0
+10,v8,instruction,0.0
+10,v8,input,0.0
+10,v8,output,1669.0
+10,v8,system,0.0
+11,v9,instruction,0.0
+11,v9,input,0.0
+11,v9,output,2096.0
+11,v9,system,1.0
+12,v10 / LoRA-v1,instruction,0.0
+12,v10 / LoRA-v1,input,0.0
+12,v10 / LoRA-v1,output,2427.0
+12,v10 / LoRA-v1,system,0.0
+13,v11 / LoRA-v2,instruction,851.0
+13,v11 / LoRA-v2,input,0.0
+13,v11 / LoRA-v2,output,646.0
+13,v11 / LoRA-v2,system,0.0

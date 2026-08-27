@@ -1,0 +1,5 @@
+﻿run,model,version,global_steps,epochs,last_logged_loss,train_loss,runtime_hours,source
+Qwen2.5-7B · LoRA-v1,Qwen2.5-7B,LoRA-v1,20964,3.0,1.3763,,10.259722222222223,final trainer_log.jsonl
+Qwen2.5-7B · LoRA-v2,Qwen2.5-7B,LoRA-v2,10482,3.0,1.3892,1.6311960056341688,11.040158861111111,trainer_state_qwen2.5v2.json
+Llama3.1-8B · LoRA-v2,Llama3.1-8B,LoRA-v2,20964,3.0,1.157,1.3408841486537622,10.709477416666667,trainer_state_llama3.1v2.json
+DeepSeek-R1-Distill-Llama-8B · LoRA-v2,DeepSeek-R1-Distill-Llama-8B,LoRA-v2,20964,3.0,1.0545,1.333672583387499,14.344334694444443,trainer_state_deepseekv2.json

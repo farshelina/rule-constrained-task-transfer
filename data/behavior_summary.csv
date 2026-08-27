@@ -1,0 +1,3 @@
+﻿version,mean,std,n,metric
+Base,1.390710671742757,1.378892816579371,60,best_constraint_delta_margin
+LoRA-v2,4.371394852797191,0.7660927653396071,60,best_constraint_delta_margin

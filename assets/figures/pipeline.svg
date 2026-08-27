@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="270" viewBox="0 0 1440 270">
+<defs>
+<style>
+.box{fill:#f8faff;stroke:#526fe4;stroke-width:2;rx:20}
+.title{font-family:Arial,sans-serif;font-size:23px;font-weight:700;fill:#17213a;text-anchor:middle}
+.sub{font-family:Arial,sans-serif;font-size:15px;fill:#5a6782;text-anchor:middle}
+.arrow{stroke:#8795c4;stroke-width:4;fill:none;marker-end:url(#arrow)}
+</style>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+<path d="M0,0 L0,6 L9,3 z" fill="#8795c4"/>
+</marker>
+</defs>
+<rect class="box" x="20" y="70" width="250" height="125"/>
+<text class="title" x="145" y="120">Mixed Training Data</text>
+<text class="sub" x="145" y="155">General + Dou Dizhu</text>
+<path class="arrow" d="M280 132 L345 132"/>
+<rect class="box" x="355" y="70" width="270" height="125"/>
+<text class="title" x="490" y="120">Rule-Constrained SFT</text>
+<text class="sub" x="490" y="155">LoRA-v1 / LoRA-v2</text>
+<path class="arrow" d="M635 132 L700 132"/>
+<rect class="box" x="710" y="70" width="250" height="125"/>
+<text class="title" x="835" y="120">Transfer Evaluation</text>
+<text class="sub" x="835" y="155">ACL Bench</text>
+<path class="arrow" d="M970 132 L1035 132"/>
+<rect class="box" x="1045" y="70" width="370" height="125"/>
+<text class="title" x="1230" y="120">Behavior &amp; Mechanism</text>
+<text class="sub" x="1230" y="155">Constraint probes + head scan + Top-k validation</text>
+</svg>

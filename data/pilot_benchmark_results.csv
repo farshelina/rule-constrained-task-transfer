@@ -1,0 +1,16 @@
+﻿group,benchmark,checkpoint,score
+Public BBH,Logical Deduction (5 objects),Pilot Base,47.199999999999996
+Public BBH,Logical Deduction (5 objects),Pilot Fine-tuned,48.4
+Public BBH,Tracking Shuffled Objects (5 objects),Pilot Base,16.400000000000002
+Public BBH,Tracking Shuffled Objects (5 objects),Pilot Fine-tuned,18.0
+Initial ACL,Overall,Pilot Base,48.333333333333336
+Initial ACL,Overall,Pilot Fine-tuned,48.333333333333336
+Initial ACL,Overall,Pilot Fine-tuned · Chat,60.333333333333336
+Multi-hop ACL,1-hop,Pilot Base,56.00000000000001
+Multi-hop ACL,2-hop,Pilot Base,47.0
+Multi-hop ACL,3-hop,Pilot Base,42.5
+Multi-hop ACL,Overall,Pilot Base,48.5
+Multi-hop ACL,1-hop,Pilot Fine-tuned,56.00000000000001
+Multi-hop ACL,2-hop,Pilot Fine-tuned,47.0
+Multi-hop ACL,3-hop,Pilot Fine-tuned,42.5
+Multi-hop ACL,Overall,Pilot Fine-tuned,48.5

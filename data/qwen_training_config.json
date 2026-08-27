@@ -1,0 +1,17 @@
+{
+  "Base model": "Qwen2.5-7B",
+  "Fine-tuning method": "LoRA",
+  "Training datasets": "v1: mixed_train_v10_repaired; v2: mixed_train_v11_constraints",
+  "Template": "qwen",
+  "Cutoff length": "2048",
+  "Target modules": "q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj",
+  "LoRA rank": "16",
+  "LoRA alpha": "32",
+  "LoRA dropout": "0.05",
+  "Per-device batch size": "4",
+  "Learning rate": "1e-4",
+  "Epochs": "3",
+  "Scheduler": "cosine",
+  "Warmup ratio": "0.1",
+  "Gradient checkpointing": "True"
+}

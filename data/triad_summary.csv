@@ -1,0 +1,13 @@
+﻿run,stage,heads,samples,seed
+Base · standard thresholds,All heads,784,60,42
+Base · standard thresholds,Targeting,157,60,42
+Base · standard thresholds,Correlation,22,60,42
+Base · standard thresholds,Counterfactual,14,60,42
+LoRA-v2 · standard thresholds,All heads,784,60,42
+LoRA-v2 · standard thresholds,Targeting,157,60,42
+LoRA-v2 · standard thresholds,Correlation,0,60,42
+LoRA-v2 · standard thresholds,Counterfactual,0,60,42
+LoRA-v2 · relaxed thresholds,All heads,784,100,42
+LoRA-v2 · relaxed thresholds,Targeting,235,100,42
+LoRA-v2 · relaxed thresholds,Correlation,0,100,42
+LoRA-v2 · relaxed thresholds,Counterfactual,0,100,42

@@ -1,0 +1,4 @@
+k,topk_drop,global_random_drop,matched_random_drop
+5,7.489,0.281,1.173
+10,6.987,0.186,1.13
+27,5.281,2.638,1.32

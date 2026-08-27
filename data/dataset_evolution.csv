@@ -1,0 +1,14 @@
+﻿sequence,file_name,version,phase,total_examples,general_examples,doudizhu_examples,changed_records_from_previous
+1,mixed_train_1to10.json,Initial 1:10 mix,Initial mixing,55000,50000,5000,
+2,mixed_train_repaired.json,Repaired mix,Format refinement,55500,50500,5000,55500.0
+3,mixed_train_refined_v2.json,Refined v2,Format refinement,55900,50900,5000,55900.0
+4,mixed_train_v3_cleaned.json,v3 cleaned,Data cleaning,55900,50399,5501,55900.0
+5,mixed_train_cleaned_v3_20260113_200942.json,v3 snapshot,Data cleaning,55900,50399,5501,0.0
+6,mixed_train_v4_polished.json,v4 polished,Output refinement,55900,50399,5501,4723.0
+7,mixed_train_v5_final.json,v5,Output refinement,55900,50399,5501,694.0
+8,mixed_train_v6_final.json,v6,Output refinement,55900,50399,5501,1192.0
+9,mixed_train_v7_behavioral.json,v7 behavioral,Output refinement,55900,50399,5501,650.0
+10,mixed_train_v8_final.json,v8,Output refinement,55900,50399,5501,1669.0
+11,mixed_train_v9_final.json,v9,Output refinement,55900,50400,5500,2097.0
+12,mixed_train_v10_repaired.json,v10 / LoRA-v1,Final standard dataset,55900,50400,5500,2427.0
+13,mixed_train_v11_constraints.json,v11 / LoRA-v2,Constraint injection,55900,50400,5500,851.0

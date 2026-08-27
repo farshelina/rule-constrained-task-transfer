@@ -1,0 +1,4 @@
+﻿category,display_name,count,description
+counter_logic,Counter Logic,100,"Select the minimum candidate strictly above a threshold, including cases in which no candidate is valid."
+hierarchy_logic,Hierarchy Logic,100,"Reason over an explicitly ordered hierarchy to determine whether one level can access, override, or penetrate another."
+pattern_recognition,Pattern Recognition,100,"Recognize arithmetic-sequence rules, predict the next item, or identify an outlier."

@@ -1,0 +1,8 @@
+﻿dataset,component,count
+LoRA-v1 mixed training set,Total examples,55900
+LoRA-v1 mixed training set,General instruction examples,50400
+LoRA-v1 mixed training set,Dou Dizhu examples,5500
+LoRA-v2 mixed training set,Total examples,55900
+LoRA-v2 mixed training set,General instruction examples,50400
+LoRA-v2 mixed training set,Dou Dizhu examples,5500
+LoRA-v2 mixed training set,Constraint-injected examples,851

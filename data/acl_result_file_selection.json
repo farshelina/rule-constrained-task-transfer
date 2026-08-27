@@ -1,0 +1,16 @@
+{
+  "used_files": [
+    "acl_bench_baseline_deepseek_chat.json",
+    "acl_bench_deepseek_finetuned_chat.json",
+    "acl_bench_baseline_qwen25_chat.json",
+    "acl_bench_qwen2.5_finetuned_chat.json",
+    "acl_bench_baseline_llama31_chat.json",
+    "acl_bench_llama3.1_finetuned_chat.json"
+  ],
+  "not_used_in_primary_chart": [
+    "acl_bench_llama31_baseline_chat.json",
+    "acl_bench_llama31_finetuned_chat.json",
+    "acl_bench_qwen25_finetuned_chat.json"
+  ],
+  "reason": "The archive contains duplicate or alternative result filenames. The website uses one explicitly named Base/fine-tuned pair per requested model."
+}
