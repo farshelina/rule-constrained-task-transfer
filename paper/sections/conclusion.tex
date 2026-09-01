@@ -1,0 +1,20 @@
+﻿\section{Conclusion}
+\label{sec:conclusion}
+
+This study investigates task transfer, constraint-sensitive preference reallocation, and internal causal dependence after fine-tuning on a rule-constrained mixed corpus. Using Dou Dizhu as a structured rule-based source domain, we construct a mixed fine-tuning corpus that includes explicit prohibitive constraints requiring the model to revise its preferred action and select a legal alternative.
+
+To evaluate cross-task transfer, we introduce ACL Bench, a 300-item benchmark covering Hierarchy Logic, Pattern Recognition, and Counter Logic. Across DeepSeek-R1-Distill-Llama-8B, Qwen2.5-7B, and Llama3.1-8B, all models achieve higher overall ACL Bench accuracy after fine-tuning on the rule-constrained mixed corpus, while the category-level effects differ substantially across model families. These results indicate that the observed transfer is selective and model-dependent rather than a uniform improvement in general reasoning ability.
+
+We further evaluate constraint-sensitive preference reallocation using controlled decision probes and the best constraint delta margin. The fine-tuned Qwen2.5-7B model exhibits a substantially stronger shift in relative preference from prohibited actions toward legal alternatives, showing that fine-tuning affects not only action suppression but also the reallocation of decision preference under changing rules.
+
+At the mechanistic level, complete single-head causal ablation reveals a sparse and heterogeneous pattern of changes in attention-head causal contribution after fine-tuning. A limited subset of heads exhibits substantially amplified causal contribution to constraint-sensitive preference shift. Joint Top-$k$ ablation further shows that removing the highest-ranked heads causes greater behavioral degradation than both globally random and layer-matched random controls across all tested intervention sizes. These results provide causal evidence that a functionally important subset of attention heads contributes to the learned constraint-sensitive preference shift rather than reflecting uniform changes across the attention system.
+
+The non-monotonic Top-$k$ effects further indicate that attention-head contributions are not simply additive and may involve redundancy, compensation, or nonlinear interaction.
+
+Several questions remain open. The current main results do not yet isolate the incremental contribution of the constraint-injected examples through a strictly matched LoRA-v1 versus LoRA-v2 comparison, and the identified attention heads have not yet been causally tested on ACL Bench itself. Therefore, the present mechanistic results directly explain constraint-sensitive decision behavior, while the relationship between these causal components and cross-task transfer remains to be established.
+
+Overall, this work provides a unified experimental framework for studying fine-tuning at both the behavioral and mechanistic levels. By combining structured source-domain adaptation, cross-task transfer evaluation, constraint-sensitive preference-shift measurement, and causal attention-head intervention, the study provides evidence that fine-tuning can induce selective capability transfer while selectively altering the causal contributions of internal components associated with constraint-sensitive behavior.
+
+
+
+

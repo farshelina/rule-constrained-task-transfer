@@ -1,0 +1,100 @@
+\begin{tikzpicture}[
+node distance=1.2cm,
+box/.style={
+draw,
+rounded corners,
+align=center,
+minimum width=3.2cm,
+minimum height=0.8cm
+},
+smallbox/.style={
+draw,
+rounded corners,
+align=center,
+minimum width=2.8cm,
+minimum height=0.7cm
+},
+arrow/.style={
+->,
+thick
+}
+]
+
+
+% Training data
+
+\node (general) [smallbox]
+{General Instruction\\Data};
+
+\node (doudizhu) [smallbox, right=1.2cm of general]
+{Dou Dizhu Decision\\Data};
+
+
+\node (corpus) [box, below=1cm of $(general)!0.5!(doudizhu)$]
+{Mixed Fine-tuning\\Corpus};
+
+
+\draw[arrow] (general) -- (corpus);
+\draw[arrow] (doudizhu) -- (corpus);
+
+
+% Fine tuning
+
+\node (finetune) [box, below=1cm of corpus]
+{Rule-Constrained\\Fine-tuning};
+
+
+\draw[arrow] (corpus) -- (finetune);
+
+
+% Model
+
+\node (model) [box, below=1cm of finetune]
+{Fine-tuned\\LLM};
+
+
+\draw[arrow] (finetune) -- (model);
+
+
+
+% Three branches
+
+\node (transfer) [box, below left=1.5cm and 1.8cm of model]
+{
+Task Transfer\\Analysis\\
+\vspace{0.1cm}
+ACL Bench\\
+Hierarchy Logic\\
+Pattern Recognition\\
+Counter Logic
+};
+
+
+\node (constraint) [box, below=1.8cm of model]
+{
+Constraint-Sensitive\\
+Preference Analysis\\
+\vspace{0.1cm}
+Constraint Probes\\
+Best Constraint\\
+Delta Margin
+};
+
+
+\node (mechanism) [box, below right=1.5cm and 1.8cm of model]
+{
+Mechanistic\\
+Analysis\\
+\vspace{0.1cm}
+Attention-head\\
+Causal Ablation\\
+Top-$k$ Control
+};
+
+
+\draw[arrow] (model) -- (transfer);
+\draw[arrow] (model) -- (constraint);
+\draw[arrow] (model) -- (mechanism);
+
+
+\end{tikzpicture}

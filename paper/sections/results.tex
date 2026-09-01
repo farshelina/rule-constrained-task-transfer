@@ -1,0 +1,646 @@
+\section{Results}
+\label{sec:results}
+
+This section reports the experimental results at three levels. We first evaluate cross-task transfer on ACL Bench across three model families. We then examine constraint-sensitive preference reallocation using the controlled behavioral probes. Finally, we analyze how fine-tuning changes the causal contribution of individual attention heads and validate the highest-ranked heads through joint Top-$k$ ablation against two random-control conditions.
+
+\subsection{Task-Transfer Results}
+\label{sec:task_transfer_results}
+
+\subsubsection{Overall ACL Bench Performance}
+
+Table~\ref{tab:acl_categories} reports accuracy separately for Counter Logic, Hierarchy Logic, and Pattern Recognition.
+
+\begin{table}[H]
+
+\centering
+
+\caption{
+Category-level ACL Bench accuracy across three reasoning categories.
+Values are reported as percentages.
+}
+
+\label{tab:acl_categories}
+
+\begin{tabular}{llccc}
+
+\toprule
+
+Model & Setting & Counter & Hierarchy & Pattern \\
+
+\midrule
+
+DeepSeek-R1-Distill-Llama-8B 
+& Base & 30 & 27 & 27 \\
+
+& LoRA-v2 & 43 & 39 & 32 \\
+
+\midrule
+
+Qwen2.5-7B 
+& Base & 38 & 34 & 34 \\
+
+& LoRA-v2 & 24 & 70 & 68 \\
+
+\midrule
+
+Llama3.1-8B 
+& Base & 39 & 62 & 34 \\
+
+& LoRA-v2 & 41 & 65 & 70 \\
+
+\bottomrule
+
+\end{tabular}
+
+\end{table}
+
+All three model families achieve higher overall ACL Bench accuracy after fine-tuning.
+
+DeepSeek-R1-Distill-Llama-8B improves from 28.0\% to 38.0\%, corresponding to a gain of 10.0 percentage points. Qwen2.5-7B exhibits the largest overall improvement, increasing from 35.3\% to 54.0\%, while Llama3.1-8B increases from 45.0\% to 58.7\%.
+
+The consistency of the overall direction across three model families indicates that the behavioral changes induced by the rule-constrained fine-tuning corpus are not limited to a single pretrained model.
+
+However, the category-level results reveal that these gains are highly non-uniform.
+
+\subsubsection{Category-Level Transfer}
+
+The category-level transfer pattern is summarized in Figure~\ref{fig:acl_category_transfer}.
+
+\begin{figure}[ht]
+\centering
+
+\includegraphics[
+width=0.7\linewidth
+]{figures/figure7_acl_category_transfer.pdf}
+
+
+\vspace{0.1cm}
+
+
+\begin{minipage}{0.75\linewidth}
+\centering
+\small
+
+\begin{tabular}{llccc}
+\toprule
+Model & Setting & Counter & Hierarchy & Pattern\\
+\midrule
+DeepSeek & Base & 30 & 27 & 27\\
+         & LoRA-v2 & 43 & 39 & 32\\
+\midrule
+Qwen2.5 & Base & 38 & 34 & 34\\
+        & LoRA-v2 & 24 & 70 & 68\\
+\midrule
+Llama3.1 & Base & 39 & 62 & 34\\
+         & LoRA-v2 & 41 & 65 & 70\\
+\bottomrule
+\end{tabular}
+
+\end{minipage}
+
+
+\caption{
+Category-level ACL Bench transfer after rule-constrained fine-tuning.
+The heatmap shows Base-to-LoRA-v2 accuracy changes, while the table provides the corresponding category-level scores. The results reveal selective and model-dependent transfer rather than uniform improvement across reasoning categories.
+}
+
+\label{fig:acl_category_transfer}
+
+\end{figure}
+
+DeepSeek-R1-Distill-Llama-8B shows improvements across all three categories. Counter Logic increases from 30\% to 43\%, Hierarchy Logic from 27\% to 39\%, and Pattern Recognition from 27\% to 32\%. The improvement is therefore distributed across categories, although its magnitude varies.
+
+Qwen2.5-7B exhibits a substantially different transfer profile. Hierarchy Logic increases from 34\% to 70\%, and Pattern Recognition increases from 34\% to 68\%. In contrast, Counter Logic decreases from 38\% to 24\%.
+
+Llama3.1-8B shows only limited changes in Counter Logic and Hierarchy Logic, increasing from 39\% to 41\% and from 62\% to 65\%, respectively. Its largest improvement occurs in Pattern Recognition, which increases from 34\% to 70\%.
+
+These category-level differences show that the overall gains cannot be interpreted as a uniform increase in general reasoning ability.
+
+Instead, the observed transfer is selective and strongly dependent on both the target reasoning category and the underlying base model.
+
+In particular, Qwen2.5-7B and Llama3.1-8B obtain large improvements in Pattern Recognition, whereas their Counter Logic behavior differs substantially. Qwen2.5-7B improves strongly in Hierarchy Logic but degrades in Counter Logic, while Llama3.1-8B remains comparatively stable in both categories.
+
+The ACL results therefore support a characterization of the fine-tuning effect as structure-dependent and model-dependent cross-task transfer rather than broad, homogeneous reasoning enhancement.
+
+\subsection{Constraint-Sensitive Preference-Shift Results}
+\label{sec:constraint_behavior_results}
+
+ACL Bench evaluates transfer outside the source domain, but it does not directly measure whether the fine-tuned model has learned to revise its decision preference when an additional rule prohibits an otherwise preferred action.
+
+We therefore evaluate Qwen2.5-7B Base and LoRA-v2 on the 60 controlled constraint-sensitive probes using the best constraint delta margin.
+
+\subsubsection{Overall Preference-Reallocation Effect}
+
+Table~\ref{tab:constraint_overall} summarizes the overall preference-shift scores.
+
+\begin{table}[t]
+\centering
+\caption{Best constraint delta margin on the 60 constraint-sensitive probes.}
+\label{tab:constraint_overall}
+\begin{tabular}{lcc}
+\toprule
+Model & Mean & Standard Deviation \\
+\midrule
+Qwen2.5-7B Base & 1.391 & 1.379 \\
+Qwen2.5-7B LoRA-v2 & 4.371 & 0.766 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Base model obtains a mean best constraint delta margin of
+
+\[
+1.390711 \pm 1.378893,
+\]
+
+whereas LoRA-v2 obtains
+
+\[
+4.371395 \pm 0.766093.
+\]
+
+Thus, after rule-constrained fine-tuning, the preference-shift score increases by approximately 2.981 points.
+
+Because the metric measures the change in relative preference between the forbidden action and the strongest legal alternative, this increase indicates that the fine-tuned model responds to the introduction of a prohibition by more strongly reallocating preference toward a legal alternative.
+
+The smaller standard deviation observed for LoRA-v2 also indicates that the strengthened constraint response is more consistent across the evaluated probes.
+
+Importantly, this result should not be interpreted merely as stronger suppression of forbidden actions. The metric explicitly incorporates the strongest legal alternative and therefore captures a change in the relative organization of candidate-action preferences.
+
+\subsubsection{Scenario-Level Results}
+
+The 60 probes are divided equally across six controlled scenarios, with 10 probes per scenario. Table~\ref{tab:constraint_scenarios} reports the corresponding mean scores.
+
+\begin{table}[t]
+\centering
+\caption{Scenario-level best constraint delta margin for Qwen2.5-7B. Each scenario contains 10 probes.}
+\label{tab:constraint_scenarios}
+\begin{tabular}{lrrr}
+\toprule
+Scenario & Base & LoRA-v2 & $\Delta$ \\
+\midrule
+\texttt{bomb\_9999}              & 1.898 & 4.180 & +2.282 \\
+\texttt{pair\_88}                & 0.309 & 5.284 & +4.975 \\
+\texttt{real\_pair\_QQ\_landlord}& 0.155 & 4.107 & +3.952 \\
+\texttt{rocket\_BR}              & 1.115 & 5.427 & +4.312 \\
+\texttt{single\_A\_follow}       & 0.700 & 3.252 & +2.552 \\
+\texttt{straight\_34567}         & 4.168 & 3.977 & -0.191 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+LoRA-v2 achieves a higher constraint-sensitive score in five of the six scenarios.
+
+The largest improvements occur in \texttt{pair\_88}, \texttt{rocket\_BR}, and \texttt{real\_pair\_QQ\_landlord}. These scenarios exhibit Base-to-LoRA increases of 4.975, 4.312, and 3.952, respectively.
+
+The \texttt{straight\_34567} scenario differs from the others. The Base model already exhibits a relatively high score of 4.168, while the LoRA-v2 score is slightly lower at 3.977.
+
+The fine-tuning effect is therefore not uniformly positive across every individual scenario.
+
+Nevertheless, the overall mean increases substantially, and five of the six scenario-level comparisons show clear improvement. The results support a cross-scenario enhancement of constraint-sensitive preference reallocation while also indicating that the magnitude of the effect depends on the underlying decision structure.
+
+\begin{figure}[ht]
+\centering
+\input{figures/preference_shift.tex}
+\caption{
+Illustration of constraint-sensitive preference reallocation.
+The best constraint delta margin measures the relative probability shift from a forbidden action toward the strongest legal alternative after an explicit constraint is introduced.
+}
+\label{fig:preference_shift}
+\end{figure}
+
+\subsection{Direct Generation Diagnostic}
+\label{sec:generation_diagnostic}
+
+The best constraint delta margin captures preference-level adaptation but does not directly measure final generated actions.
+
+\begin{figure}[ht]
+\centering
+
+\includegraphics[
+width=0.95\linewidth
+]{figures/figure5_preference_generation.pdf}
+
+\caption{
+Comparison between preference-level adaptation and final generation behavior.
+The figure illustrates the difference between improved constraint-sensitive preference reallocation and final greedy decoding compliance after fine-tuning.
+}
+
+\label{fig:preference_generation}
+
+\end{figure}
+
+Under direct greedy generation, the Base model generates the forbidden action in 66.7\% of the probes, while 33.3\% of the generated actions correspond to legal alternatives. In contrast, LoRA-v2 generates the forbidden action in all 60 probes.
+
+\begin{table}[t]
+\centering
+\caption{Direct generation diagnostic on the 60 constraint-sensitive probes.}
+\label{tab:generation_diagnostic}
+\begin{tabular}{lrrr}
+\toprule
+Model & Forbidden (\%) & Allowed (\%) & Other Legal (\%) \\
+\midrule
+Base & 66.7 & 16.7 & 16.7 \\
+LoRA-v2 & 100.0 & 0.0 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A supplementary five-probe test without the chat template produces the same qualitative outcome for LoRA-v2, with all generated first actions corresponding to the forbidden action.
+
+These results show that the enhanced best constraint delta margin should not be interpreted as improved final-action compliance. Instead, fine-tuning strengthens the relative preference shift induced by the constraint in log-probability space, while the forbidden action can still retain the highest absolute probability during greedy decoding.
+
+The results therefore motivate a distinction between
+
+\[
+\text{constraint-sensitive preference shift}
+\neq
+\text{final generation compliance}.
+\]
+
+The mechanistic analyses in the following sections concern the former quantity.
+
+\subsection{Attention-Head Causal Results}
+\label{sec:head_causal_results}
+
+The behavioral results establish that LoRA-v2 exhibits substantially stronger constraint-sensitive preference reallocation than the Base model. We next examine whether this behavioral difference is accompanied by changes in the functional importance of individual attention heads.
+
+The causal analysis is performed on Qwen2.5-7B.
+
+\subsubsection{Exploratory Attention-Based Screening}
+
+Before performing the complete intervention scan, we explored whether constraint-related attention heads could be identified through a three-stage attention-based screening procedure consisting of targeting, correlation, and counterfactual filtering.
+
+For the Base model, the screening process produced
+
+\[
+784
+\rightarrow
+157
+\rightarrow
+22
+\rightarrow
+14
+\]
+
+candidate heads.
+
+In contrast, the standard LoRA-v2 screening produced
+
+\[
+784
+\rightarrow
+157
+\rightarrow
+0
+\rightarrow
+0.
+\]
+
+A relaxed LoRA-v2 setting using 100 samples increased the number of heads surviving the targeting stage to 235, but no heads survived the subsequent correlation stage:
+
+\[
+784
+\rightarrow
+235
+\rightarrow
+0
+\rightarrow
+0.
+\]
+
+These results indicate that simple attention--behavior correlation does not provide a stable basis for identifying constraint-relevant components after fine-tuning.
+
+Rather than treating the absence of correlated heads as evidence that the model lacks localized functional dependence, we therefore proceed to direct causal intervention.
+
+\subsubsection{Complete Single-Head Causal Scan}
+
+Qwen2.5-7B contains 28 Transformer layers and 28 attention heads per layer, resulting in 784 attention heads.
+
+Every attention head is independently ablated in both the Base and LoRA-v2 models, yielding
+
+\[
+784 \times 2 = 1568
+\]
+
+single-head interventions.
+
+For each head, we compute the causal contribution defined in Section~\ref{sec:head_ablation}, together with the Base-to-LoRA change
+
+\[
+\Delta CE(l,h)
+=
+CE_{\mathrm{LoRA}}(l,h)
+-
+CE_{\mathrm{Base}}(l,h).
+\]
+
+The full scan reveals a highly heterogeneous distribution.
+
+Most attention heads show relatively small Base-to-LoRA changes, while a much smaller subset exhibits substantially larger positive $\Delta CE$ values.
+Negative values are also observed, indicating that some heads become less supportive of the measured behavior after fine-tuning or that their removal improves the preference-shift score.
+
+Figure~\ref{fig:layerwise_delta_ce} summarizes the distribution of positive causal contribution across Transformer layers.
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[
+width=0.85\linewidth
+]{figures/figure8_layerwise_delta_ce.pdf}
+
+\caption{
+Layer-wise distribution of positive causal contribution measured by $\Delta CE$ across Qwen2.5-7B attention heads.
+The distribution shows non-uniform changes in causal contribution across Transformer layers after fine-tuning.
+}
+
+\label{fig:layerwise_delta_ce}
+
+\end{figure}
+
+The causal changes are therefore not distributed uniformly across the attention system.
+
+Table~\ref{tab:top_heads} reports the ten heads with the largest positive $\Delta CE$ values.
+
+\begin{table}[t]
+\centering
+\caption{Top ten Qwen2.5-7B attention heads ranked by Base-to-LoRA causal change $\Delta CE$.}
+\label{tab:top_heads}
+\begin{tabular}{rrr}
+\toprule
+Rank & Attention Head & $\Delta CE$ \\
+\midrule
+1  & L0-H22  & 7.062 \\
+2  & L0-H24  & 6.671 \\
+3  & L0-H26  & 4.552 \\
+4  & L0-H23  & 2.996 \\
+5  & L0-H15  & 2.486 \\
+6  & L20-H21 & 2.101 \\
+7  & L18-H18 & 2.055 \\
+8  & L11-H22 & 2.046 \\
+9  & L10-H14 & 1.746 \\
+10 & L19-H0  & 1.595 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Several of the strongest causal changes are concentrated in Layer 0. In particular, five of the ten highest-ranked heads are located in the first Transformer layer.
+
+However, high positive $\Delta CE$ values are not restricted to the earliest layer. Heads in Layers 10, 11, 18, 19, and 20 also appear among the ten highest-ranked components.
+
+The mechanism therefore cannot be characterized as limited to early layers. Rather, the strongest individual causal amplification is concentrated in several early heads while additional high-impact components remain distributed across intermediate layers.
+
+\subsubsection{Representative Head: L0-H22}
+
+L0-H22 provides the clearest example of causal amplification after fine-tuning.
+
+For the Base model, the original constraint-sensitive score is
+
+\[
+S_{\mathrm{Base}}
+=
+1.390711.
+\]
+
+After ablating L0-H22, the score decreases to
+
+\[
+S_{\mathrm{Base,ablated}}
+=
+0.751787.
+\]
+
+The corresponding causal effect is therefore
+
+\[
+CE_{\mathrm{Base}}(\mathrm{L0\mbox{-}H22})
+=
+1.390711
+-
+0.751787
+=
+0.638924.
+\]
+
+Thus, L0-H22 already makes a positive contribution to the measured behavior in the Base model.
+
+For LoRA-v2, the original score is
+
+\[
+S_{\mathrm{LoRA}}
+=
+4.371395.
+\]
+
+After ablating the same head, the score becomes
+
+\[
+S_{\mathrm{LoRA,ablated}}
+=
+-3.329531.
+\]
+
+The resulting causal effect is
+
+\[
+CE_{\mathrm{LoRA}}(\mathrm{L0\mbox{-}H22})
+=
+4.371395
+-
+(-3.329531)
+=
+7.700926.
+\]
+
+Therefore,
+
+\[
+\Delta CE(\mathrm{L0\mbox{-}H22})
+=
+7.700926
+-
+0.638924
+=
+7.062002.
+\]
+
+This result is important because the head is not absent or functionally irrelevant in the Base model.
+
+Instead, its contribution is positive before fine-tuning and becomes dramatically larger afterward.
+
+This pattern is consistent with selective amplification or functional reconfiguration of an existing computational component rather than the simple appearance of an entirely new attention-head function.
+
+\subsubsection{Causal Heterogeneity Across Heads}
+
+The complete scan reveals several qualitatively different patterns of causal change.
+
+For some heads,
+
+\[
+CE_{\mathrm{LoRA}}
+\gg
+CE_{\mathrm{Base}}
+>
+0,
+\]
+
+indicating strong amplification of an already positive Base-model contribution.
+
+For other heads, the Base contribution is weak while the LoRA contribution becomes substantially positive.
+
+A large number of heads exhibit
+
+\[
+\Delta CE \approx 0,
+\]
+
+indicating comparatively stable functional importance before and after fine-tuning.
+
+Finally, some heads exhibit
+
+\[
+\Delta CE < 0,
+\]
+
+showing that fine-tuning can also reduce the measured contribution of individual components.
+
+These results support a sparse and non-uniform redistribution of causal dependence rather than uniform strengthening of attention heads across the network.
+
+They also explain why attention-based correlation alone is insufficient for identifying the relevant components: strong causal importance after fine-tuning does not necessarily correspond to a simple observable attention--behavior correlation.
+
+\subsubsection{Top-$k$ Joint-Ablation Validation}
+
+Single-head causal effects identify components whose individual importance changes after fine-tuning, but they do not establish whether the highest-ranked heads form a collectively important functional subset.
+
+We therefore jointly ablate the Top-$k$ heads ranked by $\Delta CE$ for
+
+\[
+k\in\{5,10,27\},
+\]
+
+and compare the resulting behavioral degradation against Global Random and Matched Random controls, each averaged over five independently sampled control sets.
+
+The causal ablation comparison is summarized in Figure~\ref{fig:topk_validation}.
+
+\begin{figure}[ht]
+\centering
+
+\includegraphics[width=0.65\linewidth]{figures/figure4b_random_controls.pdf}
+
+
+\vspace{0.2cm}
+
+
+\begin{minipage}{0.7\linewidth}
+\centering
+\scriptsize
+
+\begin{tabular}{rrrr}
+\toprule
+$k$ & Top-$k$ & Global Random & Matched Random \\
+\midrule
+5  & 7.489 & 0.281 & 1.173 \\
+10 & 6.987 & 0.186 & 1.130 \\
+27 & 5.281 & 2.638 & 1.320 \\
+\bottomrule
+\end{tabular}
+
+\end{minipage}
+
+
+\caption{
+Causal validation of Delta$_{CE}$-selected attention heads.
+Top-$k$ ablation produces substantially larger behavioral degradation than Global Random and Matched Random controls, indicating that the identified heads form a functionally distinctive subset rather than arbitrary or layer-dependent components.
+Error bars indicate standard deviation across five random control runs.
+}
+
+\label{fig:topk_validation}
+
+\end{figure}
+
+
+Across all three intervention sizes, Top-$k$ ablation causes greater behavioral degradation than either random control.
+
+At $k=5$, removing the five highest-ranked heads produces a drop of 7.489, compared with 0.281 under Global Random and 1.173 under Matched Random.
+
+At $k=10$, the Top-$k$ drop remains large at 6.987, whereas Global Random and Matched Random produce drops of only 0.186 and 1.130, respectively.
+
+At $k=27$, Top-$k$ ablation produces a drop of 5.281. Although the Global Random effect becomes larger at this intervention size, reaching 2.638, it remains substantially below the Top-$k$ effect. The corresponding Matched Random drop is 1.320.
+
+These results provide stronger evidence that the $\Delta CE$ ranking identifies a functionally distinctive subset of attention heads.
+
+The Global Random comparison shows that the result cannot be explained simply by removing the same number of arbitrary attention heads.
+
+The Matched Random comparison provides a stricter control by preserving the layer distribution of the Top-$k$ set. The persistence of a larger Top-$k$ effect under this control indicates that the result also cannot be explained solely by the network depths at which the selected heads are located.
+
+\FloatBarrier
+
+\subsubsection{Non-Monotonic Joint-Ablation Effects}
+
+An important feature of the Top-$k$ results is that behavioral degradation does not increase monotonically with $k$.
+
+The Top-$k$ drops are
+
+\[
+7.489
+\rightarrow
+6.987
+\rightarrow
+5.281
+\]
+
+for
+
+\[
+k=5,\ 10,\ 27,
+\]
+
+respectively.
+
+Thus, removing additional high-ranked heads does not lead to progressively larger degradation.
+
+This finding indicates that individual attention-head causal effects should not be interpreted as independent additive quantities.
+
+In general,
+
+\[
+CE(h_1,\ldots,h_k)
+\neq
+\sum_{i=1}^{k} CE(h_i).
+\]
+
+The non-monotonic pattern is consistent with the possibility of redundancy, compensation, inhibitory interactions, or other nonlinear dependencies among attention heads.
+
+The present experiment does not distinguish among these possibilities. Nevertheless, it shows that a relatively small set of highly ranked heads can have a particularly strong joint effect and that extending the intervention to a larger set changes the functional interaction among the remaining components.
+
+\subsubsection{Summary of the Causal Results}
+
+The causal experiments provide four main findings.
+
+First, attention-based correlation screening and direct causal intervention yield different conclusions, emphasizing that observable attention patterns do not necessarily identify functionally important components.
+
+Second, the complete 784-head scan reveals a sparse and heterogeneous redistribution of causal importance after fine-tuning rather than a uniform change across the attention system.
+
+Third, representative heads such as L0-H22 already contribute positively in the Base model but become substantially more important after fine-tuning, supporting an interpretation based on selective amplification or reconfiguration of pre-existing mechanisms.
+
+Finally, Top-$k$ joint ablation demonstrates that the heads with the largest positive $\Delta CE$ values form a functionally meaningful subset. Their removal produces substantially greater behavioral degradation than both globally random and layer-matched random controls across all tested intervention sizes.
+
+These causal results directly concern the best constraint delta margin. They establish that the learned constraint-sensitive preference reallocation depends selectively on a subset of attention heads whose functional contribution is strengthened after fine-tuning.
+
+They do not, by themselves, establish that the same heads causally mediate the cross-task ACL Bench improvements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

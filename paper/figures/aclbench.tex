@@ -1,0 +1,99 @@
+\begin{tikzpicture}[
+node distance=1cm,
+box/.style={
+draw,
+rounded corners,
+align=center,
+minimum width=3cm,
+minimum height=0.8cm
+},
+smallbox/.style={
+draw,
+rounded corners,
+align=center,
+minimum width=2.5cm,
+minimum height=0.7cm
+},
+arrow/.style={
+->,
+thick
+}
+]
+
+
+% Source domain
+
+\node (source) [box]
+{Dou Dizhu\\
+Source Domain};
+
+
+% Abstract operations
+
+\node (hier) [smallbox, below left=1.2cm and 2.0cm of source]
+{
+Hierarchical\\
+Relations
+};
+
+\node (pattern) [smallbox, below=1.2cm of source]
+{
+Pattern\\
+Structures
+};
+
+\node (counter) [smallbox, below right=1.2cm and 2.0cm of source]
+{
+Conditional\\
+Selection\\
+Operations
+};
+
+
+\draw[arrow] (source) -- (hier);
+\draw[arrow] (source) -- (pattern);
+\draw[arrow] (source) -- (counter);
+
+
+
+% ACL Bench
+
+\node (acl) [box, below=2cm of pattern]
+{
+ACL Bench\\
+Abstract Evaluation
+};
+
+
+\node (logic1) [smallbox, below left=1cm and 1.8cm of acl]
+{
+Hierarchy\\
+Logic
+};
+
+
+\node (logic2) [smallbox, below=1cm of acl]
+{
+Pattern\\
+Recognition
+};
+
+
+\node (logic3) [smallbox, below right=1cm and 1.8cm of acl]
+{
+Counter\\
+Logic
+};
+
+
+\draw[arrow] (hier) -- (acl);
+\draw[arrow] (pattern) -- (acl);
+\draw[arrow] (counter) -- (acl);
+
+
+\draw[arrow] (acl) -- (logic1);
+\draw[arrow] (acl) -- (logic2);
+\draw[arrow] (acl) -- (logic3);
+
+
+\end{tikzpicture}

@@ -1,0 +1,56 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large language models (LLMs), built upon Transformer architectures and large-scale pretraining, can acquire new task behaviors through fine-tuning, allowing a pretrained model to adapt to specific domains, instructions, and decision requirements \cite{vaswani2017attention,brown2020language}. Instruction tuning has further shown that behaviors learned from collections of supervised tasks can generalize beyond the exact tasks observed during training, improving performance on previously unseen task types \cite{wei2022finetuned,chung2024scaling}. Parameter-efficient methods such as Low-Rank Adaptation (LoRA) have made this form of adaptation increasingly practical by enabling substantial behavioral changes without updating all model parameters \cite{hu2022lora}. These advances raise a broader question: when a model is fine-tuned to follow a structured decision policy in one domain, which aspects of the learned behavior remain specific to that domain, and which can transfer to reasoning tasks with different surface forms?
+
+This question is particularly important for fine-tuning data that encode not only preferred actions but also explicit constraints on how decisions should change. In many realistic settings, successful decision making requires more than learning a fixed mapping from an input to a preferred output. A previously preferred action may become invalid after an additional rule, prohibition, or contextual condition is introduced, requiring the model to suppress that action and select an appropriate alternative. We refer to this form of supervision as \emph{rule-constrained fine-tuning}. Compared with ordinary task fine-tuning, such examples explicitly train the model to revise its decision preference when the admissible action space changes. This makes rule-constrained training a useful setting for studying whether conditional decision patterns can transfer beyond their original domain.
+
+Existing evidence from instruction tuning demonstrates that fine-tuned language models can generalize to unseen tasks \cite{wei2022finetuned,chung2024scaling}, but broad benchmark improvements alone do not reveal what is actually being transferred. Improvements may arise from task-specific knowledge, shared linguistic templates, general instruction-following ability, or reusable reasoning operations. A stricter study of task transfer therefore requires separating the \emph{surface form} of a task from the \emph{structural operations} needed to solve it. In particular, if a model trained in one decision domain improves on tasks that use different terminology and contexts but preserve operations such as hierarchical comparison, pattern identification, or conditional candidate selection, the resulting behavior provides evidence consistent with transfer at the level of structural operations.
+
+To investigate this problem in a controlled setting, we use Dou Dizhu as a structured rule-based decision environment. The purpose of using Dou Dizhu is not to study game playing as an end in itself. Rather, the domain provides a compact environment containing explicit hierarchical relations, combinatorial patterns, legal and illegal actions, and conditional decision changes. We construct a mixed fine-tuning corpus consisting of general instruction data and Dou Dizhu decision data. In a subset of the decision examples, the action that would otherwise be preferred is explicitly prohibited, requiring the model to select a legal alternative. The resulting training setting allows us to study how a model adapts when the relationship between state and preferred action becomes conditional on an additional rule.
+
+We study the resulting behavior from two complementary perspectives. First, we ask whether the fine-tuned decision patterns transfer to tasks that are structurally related to the source domain but differ substantially in surface form. To this end, we construct \emph{ACL Bench}, a 300-item multiple-choice benchmark containing three reasoning categories: Hierarchy Logic, Pattern Recognition, and Counter Logic. These categories abstract recurring operations from the source decision environment while removing game-specific wording and scenarios. ACL Bench therefore serves as a controlled test of whether fine-tuning is associated with transfer at the level of reasoning structure rather than direct reproduction of domain-specific examples.
+
+Second, we examine how fine-tuning changes the model's response to explicit constraints. Measuring only whether the probability of a prohibited action decreases is insufficient, because suppression of one action does not necessarily imply selection of an appropriate alternative. We therefore construct controlled constraint-sensitive decision probes and introduce the \emph{best constraint delta margin}, a log-probability-based metric that measures how the relative preference between a forbidden action and the strongest legal alternative changes after a constraint is introduced. This formulation views constraint-sensitive decision adaptation as a problem of \emph{preference reallocation}: the model should not merely suppress an invalid action, but should reorganize its decision distribution toward a valid alternative.
+
+Behavioral evaluation alone, however, cannot determine how fine-tuning changes the internal mechanisms associated with the learned behavior. Mechanistic interpretability studies have shown that causal interventions and circuit-level analyses can be used to identify model components that are functionally involved in specific behaviors, rather than relying only on observed activation or attention patterns \cite{meng2022locating,conmy2023automated,elhage2021mathematical}. Previous work has also demonstrated that individual attention heads can implement behaviorally meaningful computations in Transformer models \cite{olsson2022induction}. Motivated by this intervention-based perspective, we perform a complete attention-head causal ablation analysis on the fine-tuned model. For every attention head, we measure the change in the best constraint delta margin when that head is ablated and compare its contribution before and after fine-tuning.
+
+\begin{figure}[ht]
+\centering
+\input{figures/framework.tex}
+\caption{
+Overview of the proposed rule-constrained fine-tuning framework.
+The framework integrates structured domain fine-tuning, cross-task transfer evaluation, constraint-sensitive behavioral analysis, and causal investigation of internal model changes.
+}
+\label{fig:framework}
+\end{figure}
+
+We further test whether the highest-ranked attention heads constitute a genuinely important functional subset rather than isolated single-head effects. Heads are ranked according to the increase in their causal contribution after fine-tuning, denoted as $\Delta CE$. We then jointly ablate the Top-$k$ ranked heads and compare the resulting behavioral degradation with two controls: globally random head sets and layer-matched random head sets. The latter preserves the layer distribution of the Top-$k$ intervention and therefore controls for the possibility that the observed effect is explained simply by removing heads from particular network depths.
+
+Our experiments reveal three main patterns. First, models fine-tuned with the rule-constrained corpus exhibit cross-task transfer on ACL Bench across multiple base-model families, but the gains are strongly dependent on both model family and reasoning category. The resulting transfer is therefore selective rather than a uniform improvement in general reasoning. Second, fine-tuning substantially strengthens constraint-sensitive preference reallocation: after a preferred action becomes prohibited, the fine-tuned model more strongly shifts relative probability toward legal alternatives. Third, the causal contribution of attention heads changes in a sparse and heterogeneous manner. A limited subset of heads exhibits substantially amplified causal importance after fine-tuning, and joint ablation of the highest-ranked heads produces considerably larger behavioral degradation than either global-random or layer-matched random controls. At the same time, the Top-$k$ effect is non-monotonic as $k$ increases, indicating that attention-head contributions are not simply additive and may involve redundancy or nonlinear interaction.
+
+These findings support a view of fine-tuning in which behavioral adaptation is accompanied by selective changes in the functional contribution of pre-existing computational mechanisms rather than uniform modification of the network. Importantly, the current causal analysis directly concerns constraint-sensitive decision behavior. Although ACL Bench provides independent evidence of cross-task transfer, the present experiments do not yet establish that the same attention heads causally mediate the transfer observed on ACL Bench. We therefore treat task-transfer evaluation and mechanistic analysis as complementary levels of evidence rather than assuming a direct causal connection between them.
+
+The main contributions of this work are as follows:
+
+\begin{itemize}
+    \item We formulate rule-constrained fine-tuning as a controlled setting for studying how conditional decision behavior learned in a structured source domain relates to reasoning performance on tasks with different surface forms.
+
+    \item We introduce ACL Bench, a 300-item benchmark that abstracts source-domain decision structures into Hierarchy Logic, Pattern Recognition, and Counter Logic, enabling fine-grained evaluation of structurally related task transfer.
+
+    \item We propose the best constraint delta margin and a controlled probe framework for measuring how model preference changes when an explicit constraint invalidates a previously preferred action.
+
+    \item We conduct a complete attention-head causal ablation analysis and introduce a Base-to-LoRA causal-change measure, $\Delta CE$, to characterize how fine-tuning redistributes functional dependence across attention heads.
+
+    \item We validate the functional importance of high-$\Delta CE$ heads through Top-$k$ joint ablation against both global-random and layer-matched random controls, providing evidence that the learned constraint-sensitive preference shift is associated with a sparse causal subset rather than on uniform changes across the attention system.
+\end{itemize}
+
+Together, these analyses connect cross-task behavioral evaluation, constraint-sensitive decision measurement, and causal intervention within a unified experimental framework for studying capability transfer after fine-tuning.
+
+
+
+
+
+
+
+

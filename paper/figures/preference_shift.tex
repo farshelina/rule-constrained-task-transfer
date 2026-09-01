@@ -1,0 +1,51 @@
+\begin{tikzpicture}[
+x=0.9cm,y=1cm,
+labelstyle/.style={font=\normalsize},
+titlebox/.style={
+draw,
+rounded corners,
+align=center,
+minimum width=4cm,
+minimum height=0.8cm
+},
+note/.style={
+align=center
+}
+]
+
+% Titles
+\node (beforetitle) [titlebox] at (0.3,0) {Before Constraint};
+\node (aftertitle)  [titlebox] at (10.1,0) {After Constraint};
+
+% Column labels - before
+\node[font=\small,anchor=west] at (-1.8,-1.2) {Forbidden Action};
+\node[font=\small,anchor=west] at (-1.8,-2.2) {Legal Alternative};
+
+% Bars - before
+\draw[fill=black!70] (1.8,-1.45) rectangle (5.2,-0.95);
+\draw[fill=black!35] (1.8,-2.45) rectangle (2.9,-1.95);
+
+% Column labels - after
+\node[font=\small,anchor=west] at (8.0,-1.2) {Forbidden Action};
+\node[font=\small,anchor=west] at (8.0,-2.2) {Legal Alternative};
+
+% Bars - after
+\draw[fill=black!45] (11.6,-1.45) rectangle (13.6,-0.95);
+\draw[fill=black!70] (11.6,-2.45) rectangle (14.7,-1.95);
+
+% Arrow and central text
+\draw[->, thick] (5.9,-1.95) -- (7.0,-1.95);
+\node[align=center] at (6.45,-0.65) {Constraint\\Introduced};
+
+% Up/down hints
+\node[font=\small] at (14,-1.2) {$\downarrow$};
+\node[font=\small] at (15,-2.2) {$\uparrow$};
+
+% Bottom explanation
+\node[note] at (6.0,-4.0)
+{Best Constraint Delta Margin measures relative preference reallocation,\\
+not final generation compliance.};
+
+\end{tikzpicture}
+
+
