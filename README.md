@@ -6,6 +6,14 @@
 Rule-Constrained Fine-Tuning and Task Transfer in Large Language Models:
 Behavioral Evaluation and Causal Analysis of Attention Heads
 
+## Live demo
+
+**Interactive demo:** https://rule-constrained-task-transfer.streamlit.app/
+
+The Streamlit app is deployed on Streamlit Community Cloud. The source code,
+evaluation scripts, figures, and reproducibility materials are maintained in
+this GitHub repository.
+
 ## Main pages
 
 - Overview
@@ -40,7 +48,7 @@ Behavioral Evaluation and Causal Analysis of Attention Heads
 - Original vs. ablated scores for Base and LoRA-v2
 - Stable Windows launcher using 127.0.0.1:8501
 
-## Start locally
+## Run locally
 
 Double-click:
 
