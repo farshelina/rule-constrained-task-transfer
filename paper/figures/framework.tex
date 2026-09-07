@@ -1,100 +1,93 @@
+\resizebox{0.98\linewidth}{!}{%
 \begin{tikzpicture}[
-node distance=1.2cm,
+font=\small,
 box/.style={
-draw,
-rounded corners,
-align=center,
-minimum width=3.2cm,
-minimum height=0.8cm
+    rounded corners=4pt,
+    draw=Ink!70,
+    line width=0.8pt,
+    align=center,
+    inner xsep=8pt,
+    inner ysep=6pt
 },
-smallbox/.style={
-draw,
-rounded corners,
-align=center,
-minimum width=2.8cm,
-minimum height=0.7cm
+data/.style={
+    box,
+    fill=Neutral!8,
+    minimum width=3.0cm,
+    minimum height=1.90cm,
+    text width=2.5cm
+},
+train/.style={
+    box,
+    fill=Neutral!16,
+    minimum width=3.8cm,
+    minimum height=1.90cm,
+    text width=3.2cm
+},
+analysis/.style={
+    box,
+    fill=Neutral!24,
+    minimum width=3.2cm,
+    minimum height=1.90cm,
+    text width=2.6cm
 },
 arrow/.style={
-->,
-thick
+    ->,
+    >=stealth,
+    line width=0.9pt,
+    draw=Ink,
+    shorten >=3pt,
+    shorten <=3pt
 }
 ]
 
-
-% Training data
-
-\node (general) [smallbox]
-{General Instruction\\Data};
-
-\node (doudizhu) [smallbox, right=1.2cm of general]
-{Dou Dizhu Decision\\Data};
-
-
-\node (corpus) [box, below=1cm of $(general)!0.5!(doudizhu)$]
-{Mixed Fine-tuning\\Corpus};
-
-
-\draw[arrow] (general) -- (corpus);
-\draw[arrow] (doudizhu) -- (corpus);
-
-
-% Fine tuning
-
-\node (finetune) [box, below=1cm of corpus]
-{Rule-Constrained\\Fine-tuning};
-
-
-\draw[arrow] (corpus) -- (finetune);
-
-
-% Model
-
-\node (model) [box, below=1cm of finetune]
-{Fine-tuned\\LLM};
-
-
-\draw[arrow] (finetune) -- (model);
-
-
-
-% Three branches
-
-\node (transfer) [box, below left=1.5cm and 1.8cm of model]
+\node[data] (instruction)
 {
-Task Transfer\\Analysis\\
-\vspace{0.1cm}
-ACL Bench\\
-Hierarchy Logic\\
-Pattern Recognition\\
-Counter Logic
+\textbf{General Instruction}\\
+Data
 };
 
-
-\node (constraint) [box, below=1.8cm of model]
+\node[data, right=1.8cm of instruction] (decision)
 {
-Constraint-Sensitive\\
-Preference Analysis\\
-\vspace{0.1cm}
-Constraint Probes\\
-Best Constraint\\
-Delta Margin
+\textbf{Dou Dizhu}\\
+Decision Data
 };
 
-
-\node (mechanism) [box, below right=1.5cm and 1.8cm of model]
+\node[train, below=1.2cm of $(instruction)!0.5!(decision)$]
+(finetune)
 {
-Mechanistic\\
-Analysis\\
-\vspace{0.1cm}
+\textbf{Rule-Constrained}\\
+\textbf{Fine-Tuning}\\[3pt]
+\scriptsize Mixed training corpus
+};
+
+\draw[arrow] (instruction.south) -- (finetune.north west);
+\draw[arrow] (decision.south) -- (finetune.north east);
+
+\node[analysis, below left=1.5cm and 2.8cm of finetune]
+(transfer)
+{
+\textbf{Task Transfer}\\[3pt]
+ACL Bench
+};
+
+\node[analysis, below=1.5cm of finetune]
+(preference)
+{
+\textbf{Preference Shift}\\[3pt]
+BCDM
+};
+
+\node[analysis, below right=1.5cm and 2.8cm of finetune]
+(causal)
+{
+\textbf{Causal Analysis}\\[3pt]
 Attention-head\\
-Causal Ablation\\
-Top-$k$ Control
+Ablation
 };
 
+\draw[arrow] (finetune.south) -- ++(0,-0.5) -| (transfer.north);
+\draw[arrow] (finetune.south) -- (preference.north);
+\draw[arrow] (finetune.south) -- ++(0,-0.5) -| (causal.north);
 
-\draw[arrow] (model) -- (transfer);
-\draw[arrow] (model) -- (constraint);
-\draw[arrow] (model) -- (mechanism);
-
-
-\end{tikzpicture}
+\end{tikzpicture}%
+}

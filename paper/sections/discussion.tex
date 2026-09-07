@@ -1,413 +1,49 @@
-\section{Analysis and Discussion}
+\section{Discussion}
 \label{sec:discussion}
 
-The experiments reveal a consistent but non-uniform picture of the behavioral and mechanistic changes observed after fine-tuning on the rule-constrained mixed corpus. At the behavioral level, fine-tuned models achieve higher overall performance on ACL Bench across all three evaluated model families, while the category-level changes vary substantially across models. At the source-task level, Qwen2.5-7B exhibits a substantially stronger shift from forbidden actions toward legal alternatives under explicit constraints. At the mechanistic level, the complete attention-head intervention scan shows that this behavioral change is accompanied by a sparse redistribution of causal contribution, and joint Top-$k$ ablation further confirms that the highest-ranked heads form a functionally distinctive subset.
+The results indicate that rule-constrained fine-tuning produces selective rather than uniform changes. All three model families improve in overall ACL Bench accuracy, but the category-level effects differ substantially. For Qwen2.5-7B, the same fine-tuning also strengthens constraint-sensitive preference reallocation and changes the causal contribution of a limited subset of attention heads. These effects are related, but they should not be collapsed into a single claim of general capability improvement.
 
-Taken together, these results suggest that fine-tuning should not be interpreted simply as adding a uniformly stronger reasoning capability. Instead, the observed changes are selective: particular behavioral operations are strengthened, different base models express these changes differently, and the internal dependence supporting constraint-sensitive preference shift becomes concentrated on a limited subset of attention heads.
-
-\subsection{Selective Rather Than Uniform Task Transfer}
+\subsection{Selective and Model-Dependent Transfer}
 \label{sec:discussion_transfer}
 
-The ACL Bench results show overall improvement after LoRA-v2 fine-tuning for DeepSeek-R1-Distill-Llama-8B, Qwen2.5-7B, and Llama3.1-8B. However, the category-level results demonstrate that this improvement is not distributed uniformly across the three reasoning categories.
+The ACL Bench results show different transfer profiles across the three model families. Qwen2.5-7B improves strongly on Hierarchy Logic and Pattern Recognition while declining on Counter Logic. Llama3.1-8B gains most on Pattern Recognition, whereas the DeepSeek model shows smaller but more broadly distributed improvements.
 
-For Qwen2.5-7B, the overall gain is primarily driven by large improvements in Hierarchy Logic and Pattern Recognition, while Counter Logic decreases. Llama3.1-8B shows a particularly large gain in Pattern Recognition but only limited changes in the other two categories. DeepSeek-R1-Distill-Llama-8B exhibits smaller but more broadly distributed improvements.
+This pattern argues against interpreting fine-tuning as a task-independent increase in reasoning ability. A more plausible interpretation is that training strengthens some operations that are repeatedly exercised in the source domain and remain useful after the surface form changes. The extent of transfer then depends on both the base model and the structure of the target task.
 
-These different transfer profiles argue against interpreting the fine-tuning effect as a general increase in reasoning ability. If the intervention simply improved reasoning in a task-independent manner, more consistent category-level gains would be expected.
-
-A more appropriate interpretation is that fine-tuning strengthens certain operations that overlap with the structural requirements of the target tasks. Such operations may include ordered comparison, structured pattern processing, conditional candidate selection, and adjustment of action preference under changing rules.
-
-The resulting transfer can therefore be described as \emph{selective structural transfer}. In this view, the relevant unit of transfer is not necessarily the source task itself, but reusable operations repeatedly exercised within that task.
-
-Conceptually,
-
-\[
-\begin{aligned}
-&\text{constraint introduced}\\
-&\rightarrow \text{preferred action prohibited}\\
-&\rightarrow \text{preference shifted toward a legal alternative}.
-\end{aligned}
-\]
-
-This interpretation also explains why different base models can exhibit different transfer profiles under the same general fine-tuning framework.
-
-\subsection{The Base Model Shapes the Transfer Outcome}
-\label{sec:discussion_base_model}
-
-The cross-model results indicate that the effect of fine-tuning depends strongly on the starting model.
-
-The same rule-constrained training paradigm does not produce an identical pattern of downstream improvement across Qwen2.5-7B, Llama3.1-8B, and DeepSeek-R1-Distill-Llama-8B. Instead, each model family exhibits its own combination of gains, stability, and degradation across ACL categories.
-
-This suggests that task transfer can be viewed as an interaction among three factors:
-
-\[
-\mathrm{Transfer}
-=
-f(
-\mathrm{Training\ Structure},
-\mathrm{Base\ Model},
-\mathrm{Target\ Structure}
-).
-\]
-
-The fine-tuning data determine which behavioral operations are repeatedly reinforced, but the base model determines how those operations are represented and how easily they can be adapted. The target task then determines whether the modified representations or decision procedures are useful.
-
-This perspective has two implications.
-
-First, transfer should not be inferred from a single model family. A result that appears broad in one model may be highly selective in another.
-
-Second, negative transfer in a specific category does not necessarily contradict the existence of meaningful transfer elsewhere. The Qwen2.5-7B Counter Logic decrease, for example, occurs alongside large improvements in Hierarchy Logic and Pattern Recognition.
-
-The fine-tuning effect is therefore better understood as a redistribution of task competence rather than a simple scalar increase in capability.
+We therefore describe the observed effect as \emph{selective structural transfer}. The relevant unit of transfer is not necessarily the source task as a whole, but reusable operations such as ordered comparison, pattern processing, and conditional action selection. The Qwen2.5-7B Counter Logic decrease is important in this respect: a model can improve overall while losing performance in a specific reasoning category. Category-level analysis is therefore necessary for distinguishing transfer from a uniform capability gain.
 
 \subsection{Constraint Learning as Preference Reallocation}
 \label{sec:discussion_preference}
 
-The constraint-sensitive probe results clarify what type of behavioral adaptation is learned by LoRA-v2.
+The constraint-sensitive probes clarify the behavioral change learned by LoRA-v2. The best constraint delta margin measures whether an explicit prohibition shifts preference away from the forbidden action and toward the strongest legal alternative. This is more informative than measuring suppression of the prohibited action alone, because reduced probability does not guarantee that probability mass moves toward a valid alternative.
 
-A naive measure of rule following might examine only whether the probability of a prohibited action decreases after a constraint is introduced. However, suppression alone does not guarantee successful decision adaptation. Probability mass may move toward another invalid, irrelevant, or low-quality action.
+The substantially larger mean BCDM after fine-tuning indicates stronger sensitivity to changes in the admissible action space. The constraint-injected examples differ from ordinary state--action supervision because the appropriate output depends on an additional rule: the same underlying state can require a different action once a preferred option becomes invalid. Repeated exposure to this structure may therefore encourage conditional decision policies rather than fixed state--action mappings.
 
-The best constraint delta margin instead measures the change in relative preference between the forbidden action and the strongest legal alternative. This allows the learned behavior to be interpreted as \emph{preference reallocation}.
+This interpretation remains limited by the current comparison. The main experiments contrast Base with LoRA-v2, so the incremental contribution of constraint-specific examples is not fully isolated from the broader effect of domain fine-tuning. A strictly matched LoRA-v1 versus LoRA-v2 comparison would be needed to establish that distinction directly.
 
-The relevant behavioral pattern is therefore
-
-\[
-\begin{aligned}
-\text{constraint introduced}
-&\rightarrow \text{preferred action prohibited} \\
-&\rightarrow \text{preference shifted toward a legal alternative}.
-\end{aligned}
-\]
-
-The substantially larger mean score for LoRA-v2 indicates that the fine-tuned model is more responsive to changes in the admissible action space.
-
-This distinction is important because the constraint-injected examples differ from ordinary supervised examples. Standard supervision often reinforces a mapping of the form
-
-\[
-x \rightarrow a^{*},
-\]
-
-whereas the special examples expose the model to
-
-\[
-(x,c) \rightarrow a^{c},
-\]
-
-where the additional condition changes the appropriate output.
-
-The model is therefore repeatedly trained on situations in which the correct decision depends not only on the underlying state but also on an additional rule.
-
-This form of supervision may encourage the use of conditional decision policies rather than fixed state--action mappings.
-
-However, the present results do not yet isolate the incremental effect of the constraint-injected examples from the broader effect of domain fine-tuning. A strictly matched LoRA-v1 versus LoRA-v2 experiment would be required to establish that distinction directly.
-
-\subsection{Fine-Tuning Redistributes Attention-Head Causal Dependence}
+\subsection{Sparse and Non-Additive Causal Reorganization}
 \label{sec:discussion_reconfiguration}
 
-The complete single-head intervention analysis shows that the stronger constraint-sensitive preference shift is accompanied by substantial changes in the causal importance of attention heads.
+The complete Qwen2.5-7B head scan reveals changes in causal dependence unevenly across attention heads. Most heads exhibit relatively small Base-to-LoRA changes, whereas a much smaller subset shows large positive $\Delta CE$ values and some heads show negative changes. This distribution is inconsistent with uniform strengthening of the attention system and instead supports a selective reorganization of functional dependence.
 
-These changes are highly heterogeneous.
+L0-H22 provides a representative example. The head contributes positively to the measured behavior in the Base model and becomes substantially more important after fine-tuning. This is consistent with prior findings that fine-tuning can amplify mechanisms already present in a pretrained model rather than necessarily constructing entirely new computational structures \cite{prakash2024finetuning}. The present evidence supports this interpretation for some heads, but not as a universal account of every causal change.
 
-Most heads exhibit relatively small Base-to-LoRA changes, while a much smaller subset shows large positive $\Delta CE$ values. Other heads exhibit negative changes.
+The Top-$k$ experiments provide a stronger test than single-head ranking alone. Joint ablation of the highest-ranked heads produces greater degradation than both global-random and layer-matched random controls, showing that the selected head identities matter beyond intervention size or layer placement. At the same time, degradation is non-monotonic as $k$ increases. Individual head effects therefore cannot be treated as additive; redundancy, compensation, inhibitory interactions, or larger network-state changes may contribute to the joint-ablation pattern.
 
-This pattern is inconsistent with a uniform strengthening of the entire attention system.
+The exploratory attention-based screening also differs from the causal results. More generally, prior work cautions against treating attention-based signals as faithful explanations of model behavior \cite{jain2019attention}. The absence of LoRA-v2 heads surviving the correlation-based screening therefore does not imply an absence of functionally important heads, because causal ablation identifies several with large behavioral effects. Attention correlation and causal contribution should be treated as distinct quantities.
 
-Instead, the results support a \emph{functional reconfiguration} interpretation: fine-tuning changes which pre-existing components the model depends on for the measured behavior.
+Several high-$\Delta CE$ heads occur in early layers, but the strongest effects are not confined there. High-impact heads also appear at intermediate depths, and the layer-matched controls show that the Top-$k$ effect cannot be reduced to generic sensitivity of particular layers. The causal redistribution is better characterized as sparse and distributed across depth.
 
-The representative L0-H22 result is particularly informative. This head already contributes positively to constraint-sensitive preference shift in the Base model, but its causal effect becomes dramatically larger after fine-tuning.
-
-This pattern is consistent with prior findings that fine-tuning can enhance mechanisms already present in a pretrained model rather than necessarily constructing entirely new computational structures \cite{prakash2024finetuning}.
-
-The current results extend this idea to rule-constrained decision behavior. At least for some heads, fine-tuning appears to amplify an existing functional contribution.
-
-At the same time, the complete causal map includes multiple forms of change:
-
-\[
-CE_{\mathrm{LoRA}}
-\gg
-CE_{\mathrm{Base}}
->
-0,
-\]
-
-for strongly amplified heads;
-
-\[
-\Delta CE \approx 0,
-\]
-
-for comparatively stable heads; and
-
-\[
-\Delta CE < 0,
-\]
-
-for heads whose contribution becomes weaker after fine-tuning.
-
-The resulting mechanism is therefore better characterized as selective strengthening, weakening, and redistribution rather than simple amplification.
-
-\subsection{Top-$k$ Validation Strengthens the Causal Interpretation}
-\label{sec:discussion_topk}
-
-Single-head ranking alone leaves open the possibility that high $\Delta CE$ values reflect isolated intervention effects that do not identify a meaningful functional subset.
-
-The Top-$k$ joint-ablation experiments provide stronger evidence against this interpretation.
-
-Across
-
-\[
-k\in\{5,10,27\},
-\]
-
-removing the highest-ranked heads produces greater behavioral degradation than both Global Random and Matched Random controls.
-
-Both random-control conditions are averaged across five independently sampled control sets. The Global Random comparison therefore tests whether removing an arbitrary set of the same size is sufficient to explain the degradation, while Matched Random additionally controls for the layer distribution of the selected heads.
-
-The persistence of a substantially larger Top-$k$ effect under both controls supports the conclusion that the identity of the selected heads matters.
-
-In particular, the Matched Random result is important because several of the highest-ranked heads occur in early layers. Without a layer-matched comparison, one alternative explanation would be that intervention in these layers is simply more disruptive in general.
-
-The control results weaken this explanation.
-
-The current evidence therefore supports the interpretation that the high-$\Delta CE$ heads form a selectively important functional subset for constraint-sensitive preference shift.
-
-The $k=27$ setting provides an additional threshold-based view of this subset, because it corresponds to the complete set of heads satisfying
-
-\[
-\Delta CE > 1.
-\]
-
-Thus, the joint-ablation results validate both small high-ranking subsets and a broader set selected by a causal-change threshold.
-
-\subsection{Attention-Head Contributions Are Non-Additive}
-\label{sec:discussion_nonadditive}
-
-Although Top-$k$ ablation consistently produces larger degradation than the random controls, the effect does not increase monotonically with $k$.
-
-The behavioral degradation decreases from Top-5 to Top-10 and further to Top-27.
-
-This result is important because it shows that individual head contributions cannot be interpreted as independent additive quantities.
-
-In general,
-
-\[
-CE(h_1,\ldots,h_k)
-\neq
-\sum_{i=1}^{k} CE(h_i).
-\]
-
-Several mechanisms could produce this pattern.
-
-First, multiple heads may perform partially redundant functions. Once one influential subset has been removed, ablating additional heads may contribute relatively little additional damage.
-
-Second, compensatory interactions may allow remaining components to reorganize after a larger intervention.
-
-Third, some heads may exert partially opposing or inhibitory effects on the measured behavior. Removing such heads together with strongly positive heads could reduce the net degradation.
-
-Finally, larger interventions may alter the network state sufficiently that individual causal effects measured under single-head ablation no longer predict their joint effect.
-
-The present experiments do not distinguish among these possibilities.
-
-Nevertheless, the non-monotonic result provides evidence that the mechanism is interaction-dependent rather than a simple collection of independently contributing heads.
-
-This also suggests that future mechanistic analysis should move beyond ranking isolated components toward explicit analysis of interactions among selected heads.
-
-\subsection{Attention Correlation Is Not Equivalent to Causal Importance}
-\label{sec:discussion_attention_causality}
-
-The exploratory attention-based screening provides an instructive contrast with the causal intervention results.
-
-The Base model produced a small set of heads that survived targeting, correlation, and counterfactual screening. In contrast, no LoRA-v2 heads survived the correlation stage under either the standard or relaxed screening setting.
-
-Taken alone, this observation could be misinterpreted as evidence that the fine-tuned model lacks localized attention components related to the constraint behavior.
-
-The causal intervention results show that this interpretation would be incorrect.
-
-Several LoRA-v2 attention heads have large behavioral effects when ablated, and the Top-$k$ subset produces substantially greater degradation than both random controls.
-
-The discrepancy therefore reinforces the distinction
-
-\[
-\text{attention correlation}
-\neq
-\text{causal contribution}.
-\]
-
-Observable attention patterns do not necessarily provide a reliable measure of functional dependence.
-
-An attention head may participate in a distributed computation without exhibiting a simple monotonic relationship between attention weight and behavioral output.
-
-For this reason, the present study treats attention-based screening as exploratory and causal intervention as the primary mechanistic evidence.
-
-\subsection{Early-Layer Amplification and Distributed Processing}
-\label{sec:discussion_layers}
-
-Several of the strongest positive $\Delta CE$ values occur in Layer 0, suggesting that early attention processing may become particularly important after fine-tuning.
-
-One possible interpretation is that these heads influence the initial representation of information relevant to candidate actions or explicit constraints before that information is propagated through deeper layers.
-
-However, the top-ranked set is not restricted to Layer 0.
-
-High positive causal changes also occur in Layers 10, 11, 18, 19, and 20.
-
-The mechanism should therefore not be described as purely early-layer localized.
-
-A more cautious interpretation is that the strongest individual amplification occurs in several early heads, while constraint-sensitive computation remains distributed across multiple depths.
-
-The layer-matched random control further indicates that the Top-$k$ effect cannot be reduced to a simple statement that ``early-layer ablation is generally more disruptive.''
-
-Rather, particular heads within those layers exhibit selectively increased functional importance.
-
-\subsection{Relationship Between Constraint Behavior and ACL Transfer}
-\label{sec:discussion_bridge}
-
-The current study provides three complementary levels of evidence:
-
-\[
-\text{ACL Bench}
-\rightarrow
-\text{cross-task behavioral transfer},
-\]
-
-\[
-\text{constraint probes}
-\rightarrow
-\text{stronger constraint-sensitive preference reallocation},
-\]
-
-and
-
-\[
-\text{head ablation}
-\rightarrow
-\text{selective causal dependence on an amplified head subset}.
-\]
-
-These results form a coherent picture, but an important causal distinction must be maintained.
-
-The attention-head interventions are evaluated using the best constraint delta margin. They therefore directly establish that the identified heads contribute to the learned constraint-sensitive preference reallocation.
-
-They do not directly establish that the same heads are responsible for the ACL Bench improvements.
-
-At present, the evidence supports
-
-\[
-\begin{aligned}
-&\text{rule-constrained fine-tuning}\\
-&\rightarrow \text{stronger constraint-sensitive preference shift}\\
-&\rightarrow \text{enhanced causal contribution of selected attention heads}.
-\end{aligned}
-\]
-
-while independently showing
-
-\[
-\text{rule-constrained fine-tuning}
-\rightarrow
-\text{selective ACL task transfer}.
-\]
-
-A direct mechanistic bridge between these two paths would require evaluating ACL Bench under Top-$k$ and matched-random ablation.
-
-If ACL performance decreases more strongly under Top-$k$ intervention than under the matched control, this would support the hypothesis that some of the same internal components contribute to both source-domain constraint adaptation and cross-task transfer.
-
-Conversely, if ACL performance remains comparatively stable while the preference-shift score collapses, this would suggest that the two effects rely on partially distinct mechanisms.
-
-Both outcomes would be informative.
-
-\subsection{Broader Implications}
-\label{sec:discussion_implications}
-
-The results have several implications for the study of fine-tuned language models.
-
-First, domain-specific fine-tuning does not necessarily produce only domain-specific behavioral changes. If a source task repeatedly exercises reusable operations, some of those operations may transfer to tasks with different surface forms.
-
-Second, overall benchmark accuracy is insufficient for characterizing transfer. Category-level analysis reveals capability trade-offs that would otherwise remain hidden.
-
-Third, fine-tuning changes not only model outputs but also the distribution of internal functional dependence. Two models with the same underlying architecture can rely on substantially different components after adaptation.
-
-Fourth, causal changes can be sparse. The large Top-$k$ effects relative to random controls indicate that a limited subset of heads can become disproportionately important.
-
-Finally, mechanistic effects are interaction-dependent. The non-monotonic Top-$k$ result cautions against treating component rankings as additive decompositions of behavior.
-
-Together, these observations support a view of fine-tuning as both a behavioral and mechanistic reorganization process.
-
-\subsection{Limitations}
+\subsection{Scope, Limitations, and Causal Boundary}
 \label{sec:limitations}
 
-Several limitations remain.
+The behavioral and mechanistic results should be interpreted at different levels. ACL Bench provides evidence of selective cross-task transfer. The constraint probes measure stronger preference reallocation under explicit prohibitions. The attention-head interventions establish causal support for that constraint-sensitive preference shift. The current experiments do not directly show that the same heads are responsible for ACL Bench gains.
 
-\paragraph{Single source domain.}
-The present study uses Dou Dizhu as the primary structured decision environment. Although the domain contains rich hierarchical, pattern-based, and constraint-dependent operations, additional source domains are required to determine how broadly the observed transfer patterns generalize.
+This distinction is important because the mechanistic analysis is evaluated with BCDM rather than ACL Bench. A direct causal bridge would require evaluating ACL Bench under the same Top-$k$ and layer-matched interventions. Stronger ACL degradation under Top-$k$ ablation would support a shared internal basis between constraint adaptation and transfer; stable ACL performance would instead suggest partially distinct mechanisms.
 
-\paragraph{Self-constructed transfer benchmark.}
-ACL Bench is intentionally designed to capture operations structurally related to the source domain. This makes it suitable for testing the proposed transfer hypothesis, but the observed improvements should not be interpreted as broad general reasoning enhancement. Evaluation on additional independent benchmarks would provide stronger external validation.
+Several additional limitations remain. Dou Dizhu is the only source domain, and ACL Bench is intentionally constructed around structurally related operations, so broader generalization requires additional source domains and independent benchmarks. The primary training results are based on individual fine-tuned checkpoints rather than repeated training runs across multiple random seeds. Complete causal analysis is currently available only for Qwen2.5-7B, and Top-$k$ ablation identifies a functionally important subset rather than a complete circuit.
 
-\paragraph{Constraint-specific contribution is not yet fully isolated.}
-The current main results compare Base and LoRA-v2 models. A strictly matched LoRA-v1 versus LoRA-v2 experiment is still needed to isolate the incremental effect of the constraint-injected examples from ordinary domain fine-tuning.
-
-\paragraph{Limited training-run replication.}
-The current results are primarily based on individual fine-tuned checkpoints rather than multiple independently trained random seeds. Repeated fine-tuning runs would provide stronger evidence for across-run stability.
-
-\paragraph{Mechanistic analysis is concentrated on one model family.}
-The complete 784-head scan and Top-$k$ causal validation are currently performed on Qwen2.5-7B. It remains unclear whether other model families exhibit similar causal redistribution.
-
-\paragraph{Top-$k$ ablation does not identify a complete circuit.}
-Although joint ablation confirms that the highest-ranked heads form a functionally important subset, the non-monotonic effects indicate unresolved redundancy, compensation, or nonlinear interactions. The selected heads should therefore not be interpreted as a complete isolated circuit.
-
-\paragraph{No direct causal test of ACL transfer.}
-The identified heads are causally validated for constraint-sensitive preference shift but have not yet been tested directly on ACL Bench under ablation. The present mechanistic evidence therefore explains the learned constraint-sensitive preference reallocation rather than directly establishing the mechanism of cross-task transfer.
-
-\subsection{Future Directions}
-\label{sec:future_directions}
-
-The most immediate extension is a strictly matched LoRA-v1 versus LoRA-v2 comparison under identical training and evaluation settings. This experiment would more directly isolate the incremental contribution of the constraint-injected examples.
-
-A second priority is cross-task causal evaluation. Applying the Top-$k$ and Matched Random interventions during ACL Bench evaluation would test whether the attention heads supporting constraint-sensitive preference shift also contribute to the observed transfer effect.
-
-A third direction is cross-model mechanistic analysis. Repeating either the complete head scan or a reduced intervention analysis on additional model families would help determine whether the observed causal redistribution is architecture-specific or general.
-
-Finally, interaction-level analysis among the highest-ranked heads may help explain the non-monotonic Top-$k$ effects and distinguish redundancy, compensation, and inhibitory interactions.
-
-\subsection{Discussion Summary}
-\label{sec:discussion_summary}
-
-The current results support a multi-level interpretation of rule-constrained fine-tuning.
-
-At the behavioral level, fine-tuning is associated with selective cross-task transfer rather than uniform enhancement of general reasoning.
-
-At the source-task level, the fine-tuned model exhibits substantially stronger preference reallocation when an otherwise preferred action becomes prohibited.
-
-At the mechanistic level, this behavioral adaptation is accompanied by a sparse and heterogeneous redistribution of attention-head causal contribution.
-
-Joint Top-$k$ ablation further shows that the highest-ranked heads form a selectively important functional subset: their removal produces greater behavioral degradation than both globally random and layer-matched random controls.
-
-At the same time, the non-monotonic joint-ablation effects demonstrate that attention-head contributions are not simply additive.
-
-The resulting picture can be summarized as
-
-\[
-\begin{aligned}
-&\text{structured rule-constrained fine-tuning}\\
-&\rightarrow \text{conditional behavioral adaptation}\\
-&\rightarrow \text{selective cross-task transfer}.
-\end{aligned}
-\]
-
-together with
-
-\[
-\text{conditional behavioral adaptation}
-\rightarrow
-\text{sparse redistribution of internal causal dependence}.
-\]
-
-The remaining major question is whether these two paths share the same causal components. Establishing that connection would provide a more complete account linking training intervention, behavioral transfer, and internal mechanism.
-
-
-
-
-
-
+The most informative extensions are a matched LoRA-v1/LoRA-v2 comparison, direct ACL Bench ablation with Top-$k$ and matched controls, and causal replication on additional model families. Interaction-level analysis among the highest-ranked heads would also help distinguish redundancy, compensation, and other sources of the observed non-monotonic joint effects.
 
 
 

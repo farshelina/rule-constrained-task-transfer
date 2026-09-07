@@ -1,7 +1,7 @@
-﻿\section{Method}
+\section{Methodology}
 \label{sec:method}
 
-Our study investigates rule-constrained fine-tuning from three complementary levels: source-domain training, cross-task behavioral transfer, and internal causal dependence. We first construct a mixed fine-tuning corpus in which a subset of structured decision examples contains explicit prohibitive constraints. We then evaluate cross-task transfer using ACL Bench, a benchmark designed to preserve structural operations from the source domain while changing their surface form. To characterize the learned constraint-sensitive preference reallocation more directly, we construct controlled decision probes and introduce the best constraint delta margin. Finally, we perform complete single-head causal ablation and Top-$k$ joint interventions to examine how fine-tuning changes the functional importance of individual attention heads.
+Our study investigates rule-constrained fine-tuning at three complementary levels: source-domain training, cross-task behavioral transfer, and internal causal dependence. We first construct a mixed fine-tuning corpus in which a subset of structured decision examples contains explicit prohibitive constraints. We then evaluate cross-task transfer using ACL Bench, which preserves selected structural operations from the source domain while changing their surface form. To characterize constraint-sensitive preference reallocation directly, we construct controlled decision probes and introduce the Best Constraint Delta Margin (BCDM). Finally, we perform complete single-head causal ablation and joint Top-$k$ interventions to examine how fine-tuning changes the functional importance of individual attention heads.
 
 \subsection{Dataset Construction}
 \label{sec:dataset_construction}
@@ -16,44 +16,24 @@ All fine-tuned models are adapted using Low-Rank Adaptation (LoRA) \cite{hu2022l
 
 \subsubsection{Ordinary and Rule-Constrained Decision Examples}
 
-We distinguish between ordinary decision examples and rule-constrained decision examples.
+We distinguish between ordinary decision examples and rule-constrained decision examples. An ordinary decision example can be represented as $x \rightarrow a^{*}$, where $x$ denotes the current decision state and $a^{*}$ is the preferred legal action under the original rules. For a rule-constrained example, an additional condition $c$ explicitly prohibits an action that would otherwise be preferred, yielding $(x,c) \rightarrow a^{c}$, where $a^{c}$ is a legal alternative under the modified action space.
 
-An ordinary decision example can be represented as
+The final rule-constrained corpus contains 851 constraint-injected instructions. Among these examples, 646 require a change in the target output after the additional constraint is introduced. This construction exposes the model to cases in which a previously preferred action becomes unavailable and the decision policy must therefore be revised rather than simply reproduced.
 
-\[
-x \rightarrow a^{*},
-\]
+Conceptually, the supervision changes from selecting the preferred action under the original candidate set to selecting the preferred legal action after prohibited candidates are removed:
 
-where $x$ denotes the current decision state and $a^{*}$ is the preferred legal action under the original rules.
-
-For the rule-constrained data, an additional condition $c$ is introduced that explicitly prohibits an action that would otherwise be preferred. The resulting example takes the form
-
-\[
-(x,c) \rightarrow a^{c},
-\]
-
-where $a^{c}$ is a legal alternative under the modified action space.
-
-The final rule-constrained corpus contains 851 constraint-injected instructions. Among these examples, 646 require a change in the target output after the additional constraint is introduced.
-
-This construction exposes the model to cases in which a previously preferred action becomes unavailable and the decision policy must therefore be revised rather than simply reproduced.
-
-Conceptually, the supervision changes from
-
-\[
+\begin{equation}
+\begin{aligned}
 a^{*}
-=
-\arg\max_{a\in\mathcal{A}} P(a\mid x)
-\]
-
-to
-
-\[
+&=
+\arg\max_{a\in\mathcal{A}} P(a\mid x), \\
 a^{c}
-=
+&=
 \arg\max_{a\in\mathcal{A}\setminus\mathcal{F}_{c}}
 P(a\mid x,c),
-\]
+\end{aligned}
+\label{eq:rule_constrained_policy}
+\end{equation}
 
 where $\mathcal{A}$ denotes the original candidate-action set and $\mathcal{F}_{c}$ denotes the set of actions prohibited by constraint $c$.
 
@@ -62,7 +42,7 @@ The model trained on the rule-constrained corpus is referred to as \textbf{LoRA-
 \subsection{ACL Bench Construction}
 \label{sec:acl_bench}
 
-To evaluate whether behavioral patterns acquired in the source domain transfer to tasks with different surface forms, we construct ACL Bench.
+To evaluate whether behavioral patterns acquired in the source domain transfer to tasks with different surface forms, we construct the Abstracted Cognitive Logic Benchmark (ACL Bench).
 
 ACL Bench contains 300 four-choice multiple-choice questions divided equally into three reasoning categories:
 
@@ -74,19 +54,15 @@ ACL Bench contains 300 four-choice multiple-choice questions divided equally int
     \item \textbf{Counter Logic}: selecting the minimum candidate that strictly exceeds a specified threshold, including cases in which no candidate satisfies the condition.
 \end{itemize}
 
-Each category contains 100 questions.
-
-The benchmark is designed to preserve abstract operations that recur in the source decision environment while removing direct dependence on Dou Dizhu-specific terminology. Consequently, successful performance does not require knowledge of card-game rules, card names, or source-domain output templates.
+Each category contains 100 questions. The benchmark is designed to preserve abstract operations that recur in the source decision environment while removing direct dependence on Dou Dizhu-specific terminology. Consequently, successful performance does not require knowledge of card-game rules, card names, or source-domain output templates.
 
 The three categories capture different structural relationships between the source and target tasks. Hierarchy Logic abstracts ordered rank relations, Pattern Recognition captures recurring structural regularities, and Counter Logic abstracts conditional selection relative to a comparison threshold.
 
-The benchmark generation procedure uses a fixed random seed of 42. Answer options are shuffled during item construction, and the complete benchmark is additionally shuffled before export.
-
-Several quality-control procedures are applied during benchmark construction. Hierarchy Logic items are checked for subject--relation alignment, Pattern Recognition items are checked to prevent duplicated answer options, and Counter Logic prompts are revised to ensure that the comparison condition is expressed consistently. Additional manual and programmatic checks are used to remove typographical errors, rare or unintended lexical artifacts, and context--answer mismatches.
+The benchmark generation procedure uses a fixed random seed of 42. Answer options are shuffled during item construction, and the complete benchmark is additionally shuffled before export. Several quality-control procedures are applied during benchmark construction. Hierarchy Logic items are checked for subject--relation alignment, Pattern Recognition items are checked to prevent duplicated answer options, and Counter Logic prompts are revised to ensure that the comparison condition is expressed consistently. Additional manual and programmatic checks are used to remove typographical errors, rare or unintended lexical artifacts, and context--answer mismatches.
 
 For a model $M$, category-level accuracy is defined as
 
-\[
+\begin{equation}
 \mathrm{Acc}_{c}(M)
 =
 \frac{1}{N_{c}}
@@ -95,13 +71,12 @@ For a model $M$, category-level accuracy is defined as
 \left[
 \hat{y}_{i}^{M}=y_{i}
 \right],
-\]
+\label{eq:acl_category_accuracy}
+\end{equation}
 
-where $N_{c}=100$ for each category, $\hat{y}_{i}^{M}$ is the answer predicted by model $M$, and $y_{i}$ is the correct answer.
+where $N_{c}=100$ for each category, $\hat{y}_{i}^{M}$ is the answer predicted by model $M$, and $y_{i}$ is the correct answer. Overall ACL Bench accuracy is computed over all 300 questions:
 
-Overall ACL Bench accuracy is computed over all 300 questions:
-
-\[
+\begin{equation}
 \mathrm{Acc}_{\mathrm{ACL}}(M)
 =
 \frac{1}{300}
@@ -110,16 +85,15 @@ Overall ACL Bench accuracy is computed over all 300 questions:
 \left[
 \hat{y}_{i}^{M}=y_{i}
 \right].
-\]
+\label{eq:acl_overall_accuracy}
+\end{equation}
 
 The purpose of ACL Bench is therefore not to measure unrestricted general reasoning ability, but to test whether fine-tuning is associated with transfer across tasks that share selected structural operations with the source domain.
 
 \subsection{Constraint-Sensitive Preference-Shift Metric}
 \label{sec:constraint_metric}
 
-ACL Bench evaluates cross-task transfer, but does not directly measure whether the model has learned to revise its decision preference when an explicit prohibition is introduced.
-
-To examine this behavior, we construct 60 controlled constraint-sensitive decision probes covering six decision scenarios.
+ACL Bench evaluates cross-task transfer, but does not directly measure whether the model has learned to revise its decision preference when an explicit prohibition is introduced. To examine this behavior, we construct 60 controlled constraint-sensitive decision probes covering six decision scenarios. The paired design follows the broader behavioral-testing and contrast-set paradigm, in which targeted test cases or small but meaningful input changes are used to probe whether model decisions respond to the intended condition \cite{ribeiro2020checklist,gardner2020contrast}.
 
 Each probe contains two closely matched conditions:
 
@@ -128,209 +102,183 @@ Each probe contains two closely matched conditions:
     \item a constrained condition in which an additional rule explicitly prohibits an otherwise preferred action.
 \end{enumerate}
 
-For probe $i$, let $f_i$ denote the forbidden action and let $\mathcal{L}_i$ denote the set of legal alternatives.
+For probe $i$, let $f_i$ denote the forbidden action and let $\mathcal{L}_i$ denote the set of legal alternatives. For a model $M$, the candidate-level score of action $a$ under context $x$ is defined as $s_M(a\mid x)=\log P_M(a\mid x)$.
 
-For a model $M$, we define the candidate-level log-probability score of action $a$ under context $x$ as
+We first compute the relative margin between the strongest legal alternative and the forbidden action in the unconstrained condition, and then recompute the same margin after constraint $c_i$ is introduced:
 
-\[
-s_M(a\mid x)
-=
-\log P_M(a\mid x).
-\]
-
-We first compute the relative margin between the strongest legal alternative and the forbidden action in the unconstrained condition:
-
-\[
+\begin{align}
 m_i^{\mathrm{clean}}
-=
+&=
 \max_{a\in\mathcal{L}_i}
-s_M(a\mid x_i)
+ s_M(a\mid x_i)
 -
-s_M(f_i\mid x_i).
-\]
-
-After the prohibitive constraint $c_i$ is introduced, the corresponding margin becomes
-
-\[
+ s_M(f_i\mid x_i),
+\label{eq:clean_margin}\\
 m_i^{\mathrm{constraint}}
-=
+&=
 \max_{a\in\mathcal{L}_i}
-s_M(a\mid x_i,c_i)
+ s_M(a\mid x_i,c_i)
 -
-s_M(f_i\mid x_i,c_i).
-\]
+ s_M(f_i\mid x_i,c_i).
+\label{eq:constraint_margin}
+\end{align}
 
-We define the \textbf{best constraint delta margin} for probe $i$ as
+We define the Best Constraint Delta Margin (BCDM) for probe $i$ as
 
-\[
+\begin{equation}
 \mathrm{BCDM}_i
 =
 m_i^{\mathrm{constraint}}
 -
 m_i^{\mathrm{clean}}.
-\]
+\label{eq:bcdm}
+\end{equation}
 
 The model-level preference-shift score is the mean across all $N=60$ probes:
 
-\[
+\begin{equation}
 S(M)
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
 \mathrm{BCDM}_i.
-\]
+\label{eq:model_preference_score}
+\end{equation}
 
-A positive value indicates that introducing the constraint shifts relative model preference away from the forbidden action and toward the strongest legal alternative.
-
-This metric differs from simple forbidden-action suppression. A model may reduce the probability of a prohibited action without increasing the probability of an appropriate legal response. By explicitly comparing the forbidden action with the strongest legal alternative, the best constraint delta margin measures \emph{preference reallocation} rather than suppression alone.
+A positive BCDM indicates that introducing the constraint shifts relative model preference away from the forbidden action and toward the strongest legal alternative. This metric differs from simple forbidden-action suppression: a model may reduce the probability of a prohibited action without increasing the probability of an appropriate legal response. By explicitly comparing the forbidden action with the strongest legal alternative, BCDM measures \emph{preference reallocation} rather than suppression alone.
 
 \subsection{Attention-Head Causal Ablation}
 \label{sec:head_ablation}
 
-Behavioral differences between the Base and fine-tuned models do not reveal which internal components become more or less important after adaptation. We therefore perform causal intervention at the level of individual attention heads.
+Behavioral differences between the Base and fine-tuned models do not reveal which internal components become more or less important after adaptation. Prior work has used interventions on neurons and attention heads to identify components that are causally implicated in model behavior \cite{vig2020causal,wang2023interpretability,conmy2023automated}. We therefore perform causal intervention at the level of individual attention heads. Head-removal studies further show that functional contribution can be highly uneven across heads \cite{michel2019sixteen}, motivating a complete scan rather than an assumption of uniform head importance.
 
-The primary mechanistic analysis is conducted on Qwen2.5-7B. The model contains 28 Transformer layers and 28 attention heads per layer, resulting in
+The primary mechanistic analysis is conducted on Qwen2.5-7B, which contains 28 Transformer layers with 28 attention heads per layer, for a total of $28\times28=784$ attention heads. For each head $(l,h)$, we perform single-head zero ablation during the forward pass while leaving the remaining attention heads and model components unchanged. The resulting model is reevaluated on the same 60 constraint-sensitive probes using BCDM.
 
-\[
-28\times28=784
-\]
+For a model $M$, let $S_{\mathrm{original}}(M)$ denote its preference-shift score without intervention and $S_{\mathrm{ablated}}(M,l,h)$ the score after ablating attention head $(l,h)$. We define the causal effect of head $(l,h)$ as
 
-attention heads.
-
-For each head $(l,h)$, we perform single-head zero ablation during the forward pass while leaving the remaining attention heads and model components unchanged. The resulting model is then reevaluated on the same 60 constraint-sensitive probes using the best constraint delta margin.
-
-Let
-
-\[
-S_{\mathrm{original}}(M)
-\]
-
-denote the preference-shift score of model $M$ without intervention, and let
-
-\[
-S_{\mathrm{ablated}}(M,l,h)
-\]
-
-denote the score after ablating attention head $(l,h)$.
-
-We define the causal effect of the head as
-
-\[
+\begin{equation}
 CE_M(l,h)
 =
 S_{\mathrm{original}}(M)
 -
 S_{\mathrm{ablated}}(M,l,h).
-\]
+\label{eq:head_causal_effect}
+\end{equation}
 
-A positive value indicates that removing the head decreases constraint-sensitive preference shift, implying that the head makes a positive functional contribution to the measured behavior.
+A positive value indicates that removing the head decreases constraint-sensitive preference reallocation, implying that the head makes a positive functional contribution to the measured behavior. A negative value indicates that removing the head increases the score, suggesting that the head does not positively support the measured behavior under the current metric.
 
-A negative value indicates that removing the head increases the score, suggesting that the head does not positively support the measured behavior under the current metric.
+To quantify how fine-tuning changes the causal importance of each head, we define the Base-to-LoRA causal-change measure $\Delta CE$ as
 
-To quantify how fine-tuning changes the causal importance of each head, we define
-
-\[
+\begin{equation}
 \Delta CE(l,h)
 =
-CE_{\mathrm{LoRA}}(l,h)
+CE_{\mathrm{LoRA\text{-}v2}}(l,h)
 -
 CE_{\mathrm{Base}}(l,h).
-\]
+\label{eq:delta_ce}
+\end{equation}
 
-A large positive $\Delta CE$ indicates that the model becomes more dependent on that attention head for constraint-sensitive preference shift after fine-tuning.
+A large positive $\Delta CE$ indicates that the fine-tuned model becomes more dependent on that attention head for the measured constraint-sensitive preference shift. The complete procedure is applied independently to all 784 attention heads in both the Base and LoRA-v2 models, yielding 784 single-head interventions per model and 1,568 intervention measurements in total. This complete scan allows us to analyze both individual high-impact heads and the global distribution of causal changes across layers and head indices.
 
-The complete procedure is applied independently to all 784 attention heads in both the Base and LoRA-v2 models, yielding 784 single-head interventions per model and 1,568 intervention measurements in total.
-
-This complete scan allows us to analyze both individual high-impact heads and the global distribution of causal changes across layers and attention-head indices.
-
-\subsection{Top-$k$ Causal Validation}
+\subsection{Top-k Causal Validation}
 \label{sec:topk_validation}
 
-Large single-head causal effects do not necessarily imply that the highest-ranked heads form a collectively important functional subset. We therefore perform joint Top-$k$ ablation based on the $\Delta CE$ ranking.
+Large single-head causal effects do not necessarily imply that the highest-ranked heads form a collectively important functional subset. We therefore perform joint Top-$k$ ablation based on the $\Delta CE$ ranking. Let $\mathcal{H}_{k}$ denote the set of the $k$ heads with the largest positive $\Delta CE$ values:
 
-Let
-
-\[
+\begin{equation}
 \mathcal{H}_{k}
 =
 \operatorname{TopK}_{(l,h)}
 \left[
 \Delta CE(l,h)
-\right]
-\]
+\right].
+\label{eq:topk_set}
+\end{equation}
 
-denote the set containing the $k$ attention heads with the largest positive Base-to-LoRA causal changes.
+We evaluate $k\in\{5,10,27\}$; the $k=27$ setting corresponds to the complete set of heads with $\Delta CE>1$ in the single-head ranking. For each $k$, all heads in $\mathcal{H}_{k}$ are ablated simultaneously and the preference-shift score is recomputed. The resulting behavioral degradation is defined as
 
-We evaluate three intervention sizes:
-
-\[
-k\in\{5,10,27\}.
-\]
-
-The $k=27$ setting additionally corresponds to the complete set of heads with $\Delta CE > 1$ in the single-head causal ranking.
-
-For each value of $k$, all heads in $\mathcal{H}_{k}$ are ablated simultaneously and the preference-shift score is recomputed.
-
-The resulting behavioral degradation is defined as
-
-\[
+\begin{equation}
 D(\mathcal{H}_{k})
 =
-S_{\mathrm{original}}
+S_{\mathrm{original}}(M)
 -
-S_{\mathrm{ablated}}(\mathcal{H}_{k}).
-\]
+S_{\mathrm{ablated}}(M;\mathcal{H}_{k}).
+\label{eq:topk_degradation}
+\end{equation}
 
 A larger value indicates greater functional dependence on the removed head set.
 
-To determine whether large Top-$k$ effects are specific to the $\Delta CE$ ranking rather than a generic consequence of removing multiple attention heads, we construct two control conditions.
+
+% Keep float-only pages top-aligned instead of vertically centering a single large float.
+% This is useful when Algorithm 1 is placed on its own float page.
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+The complete causal-intervention procedure, including the two random controls described below, is summarized in Algorithm~\ref{alg:causal_scan_topk}.
+
+\begin{algorithm}[!tbp]
+\caption{Attention-Head Causal Scan and Top-$k$ Validation}
+\label{alg:causal_scan_topk}
+\begin{algorithmic}[1]
+\Require Base model $M_B$, LoRA-v2 model $M_L$, probe set $\mathcal{P}$, head set $\mathcal{A}$, and $K=\{5,10,27\}$
+\Ensure Head-wise $\Delta CE$ values and Top-$k$ degradation scores
+
+\State Compute $S_{\mathrm{original}}(M_B)$ and $S_{\mathrm{original}}(M_L)$ on $\mathcal{P}$
+
+\For{$M \in \{M_B,M_L\}$}
+    \For{each head $(l,h)\in\mathcal{A}$}
+        \State Zero-ablate head $(l,h)$
+        \State Evaluate $S_{\mathrm{ablated}}(M,l,h)$ on $\mathcal{P}$
+        \State $CE_M(l,h)\gets S_{\mathrm{original}}(M)-S_{\mathrm{ablated}}(M,l,h)$
+    \EndFor
+\EndFor
+
+\For{each head $(l,h)\in\mathcal{A}$}
+    \State $\Delta CE(l,h)\gets CE_{M_L}(l,h)-CE_{M_B}(l,h)$
+\EndFor
+\State Rank all heads in descending order of $\Delta CE$
+
+\For{$k\in K$}
+    \State $\mathcal{H}_k\gets$ the $k$ heads with the largest $\Delta CE$
+    \State Jointly ablate $\mathcal{H}_k$ from $M_L$
+    \State $D_{\mathrm{Top}}(k)\gets S_{\mathrm{original}}(M_L)-S_{\mathrm{ablated}}(M_L;\mathcal{H}_k)$
+
+    \For{$r=0,\ldots,4$}
+        \State Sample $\mathcal{G}_{k,r}$ uniformly from all 784 heads
+        \State Sample $\mathcal{M}_{k,r}$ with the exact layer counts of $\mathcal{H}_k$
+        \State Compute $D_{\mathrm{Global}}^{(r)}(k)$ and $D_{\mathrm{Matched}}^{(r)}(k)$
+    \EndFor
+
+    \State Average the five Global Random and Matched Random degradation scores
+\EndFor
+
+\end{algorithmic}
+\end{algorithm}
+
+
+To determine whether large Top-$k$ effects are specific to the $\Delta CE$ ranking rather than a generic consequence of removing multiple attention heads, we compare the ranked intervention with two controls.
 
 \subsubsection{Global Random Control}
 
-The \textbf{Global Random} control selects $k$ attention heads from the complete set of 784 heads without conditioning on layer position.
+The \textbf{Global Random} control samples $k$ heads without replacement from the complete set of 784 attention heads. This control tests whether removing an arbitrary set of $k$ heads is sufficient to produce degradation comparable to the Top-$k$ intervention.
 
-This control tests whether removing an arbitrary set of $k$ heads is sufficient to produce degradation comparable to the Top-$k$ intervention.
+\subsubsection{Layer-Matched Random Control}
 
-\subsubsection{depth-bin-matched random Control}
+The \textbf{Matched Random} control preserves the exact layer-count distribution of the corresponding Top-$k$ set. For each layer, it randomly samples the same number of heads as appear in the Top-$k$ set for that layer. This controls for the possibility that the observed Top-$k$ effect is explained simply by ablating heads from particularly sensitive layers rather than by the identities of the selected heads themselves.
 
-The \textbf{Matched Random} control preserves the layer-bin distribution of the corresponding Top-$k$ set.
+For both random-control conditions, five independently sampled control sets are generated using random seeds 0, 1, 2, 3, and 4. The reported control effect for each $k$ is the mean behavioral degradation across the five runs. Thus, the joint validation compares the $\Delta CE$-selected Top-$k$ set with both a model-wide random baseline and a layer-matched random baseline.
 
-We divide the 28 Transformer layers into four depth ranges:
+If the $\Delta CE$ ranking identifies a functionally distinctive subset, Top-$k$ ablation should produce greater behavioral degradation than both controls. Importantly, this is a joint causal test rather than an additive combination of single-head effects. In general,
 
-\[
-[0,6],\quad [7,13],\quad [14,20],\quad [21,27].
-\]
-
-For each Top-$k$ set, the matched control randomly samples the same number of heads from each corresponding depth range. This controls for coarse layer-depth distribution while preserving randomness within each range.
-
-This provides a stricter comparison because it controls for the possibility that the Top-$k$ effect is explained simply by ablating heads from particularly sensitive network depths.
-
-The three intervention conditions are therefore
-
-\[
-\mathrm{Top}\text{-}k,
-\qquad
-\mathrm{Global\ Random},
-\qquad
-\mathrm{Matched\ Random}.
-\]
-
-For both random-control conditions, five independently sampled control sets are generated using random seeds 0, 1, 2, 3, and 4. For Global Random, the heads are sampled from the complete set of 784 attention heads. For Matched Random, sampling is performed independently within each layer while preserving the exact layer-count distribution of the corresponding Top-$k$ set. The reported control effect for each value of $k$ is the mean behavioral degradation across the five runs.
-
-For both random-control conditions, we generate five independent control sets using random seeds 0, 1, 2, 3, and 4. The reported random-control effect for each value of $k$ is the mean behavioral degradation across these five runs.
-
-If the $\Delta CE$ ranking identifies a functionally distinctive subset, Top-$k$ ablation should produce greater behavioral degradation than both control conditions.
-
-Importantly, the Top-$k$ intervention is treated as a joint causal test rather than as the sum of individual-head causal effects. Attention heads may exhibit redundancy, compensation, or nonlinear interaction, and therefore in general
-
-\[
+\begin{equation}
 CE(h_1,\ldots,h_k)
 \neq
-\sum_{i=1}^{k} CE(h_i).
-\]
+\sum_{i=1}^{k} CE(h_i),
+\label{eq:nonadditive_heads}
+\end{equation}
 
-The joint-ablation experiment is designed specifically to test the collective functional importance of the selected subset without assuming additive head contributions.
+because attention heads may interact through redundancy, compensation, or other nonlinear dependencies. The joint-ablation experiment therefore tests the collective functional importance of the selected subset without assuming additive head contributions.
 
-
-
-
+% Prevent Methodology floats from leaking into later sections.
+\FloatBarrier

@@ -1,29 +1,19 @@
-\section{Experimental Setup}
+﻿\section{Experimental Setup}
 \label{sec:experimental_setup}
 
 \subsection{Base Models}
 \label{sec:base_models}
 
-We evaluate rule-constrained fine-tuning on three open-weight language models from different model families, including models derived from the LLaMA family \cite{touvron2023llama}:
+We evaluate three open-weight models: Qwen2.5-7B \cite{qwen2024qwen25}, Llama3.1-8B \cite{grattafiori2024llama3}, and DeepSeek-R1-Distill-Llama-8B \cite{deepseek2025r1}. For each model, \textbf{Base} denotes the checkpoint before task-specific adaptation, and \textbf{LoRA-v2} denotes the counterpart fine-tuned on the rule-constrained mixed corpus.
 
-\begin{itemize}
-    \item \textbf{Qwen2.5-7B};
-    \item \textbf{Llama3.1-8B};
-    \item \textbf{DeepSeek-R1-Distill-Llama-8B}.
-\end{itemize}
-
-For each model family, the corresponding pretrained or instruction-tuned checkpoint before task-specific adaptation is referred to as the \textbf{Base} model. The model obtained after fine-tuning on the rule-constrained mixed corpus is referred to as \textbf{LoRA-v2}.
-
-The use of multiple model families allows us to examine whether the observed transfer effect is consistent across different pretrained representations rather than being specific to a single architecture.
-
-The primary mechanistic analysis is conducted on Qwen2.5-7B because the complete single-head causal scan and subsequent Top-$k$ joint-ablation experiments were performed on this model.
+Mechanistic experiments are restricted to Qwen2.5-7B, for which the complete single-head scan and Top-$k$ joint-ablation experiments were performed.
 
 \subsection{Fine-Tuning Configuration}
 \label{sec:finetuning_configuration}
 
-All task-specific adaptation experiments use Low-Rank Adaptation (LoRA) \cite{hu2022lora}. The pretrained model parameters remain frozen while low-rank trainable modules are inserted into selected projection layers.
+All models are adapted using Low-Rank Adaptation (LoRA) \cite{hu2022lora}. The pretrained parameters remain frozen, while trainable low-rank modules are inserted into the attention projections $q_{\mathrm{proj}}$, $k_{\mathrm{proj}}$, $v_{\mathrm{proj}}$, and $o_{\mathrm{proj}}$, and the feed-forward projections $\mathrm{gate}_{\mathrm{proj}}$, $\mathrm{up}_{\mathrm{proj}}$, and $\mathrm{down}_{\mathrm{proj}}$.
 
-The main LoRA configuration is summarized in Table~\ref{tab:lora_config}.
+The main configuration is listed in Table~\ref{tab:lora_config}.
 
 \begin{table}[t]
 \centering
@@ -31,6 +21,7 @@ The main LoRA configuration is summarized in Table~\ref{tab:lora_config}.
 \label{tab:lora_config}
 \begin{tabular}{ll}
 \toprule
+\rowcolor{NeutralCell}
 Hyperparameter & Value \\
 \midrule
 LoRA rank & 16 \\
@@ -47,71 +38,13 @@ Gradient checkpointing & Enabled \\
 \end{tabular}
 \end{table}
 
-LoRA modules are applied to the attention projections
+LoRA is applied to both attention and feed-forward projections; the mechanistic analysis focuses on attention heads.
 
-\[
-q_{\mathrm{proj}},
-\quad
-k_{\mathrm{proj}},
-\quad
-v_{\mathrm{proj}},
-\quad
-o_{\mathrm{proj}},
-\]
-
-as well as the feed-forward projections
-
-\[
-\mathrm{gate}_{\mathrm{proj}},
-\quad
-\mathrm{up}_{\mathrm{proj}},
-\quad
-\mathrm{down}_{\mathrm{proj}}.
-\]
-
-Thus, the adaptation is not restricted to the attention subsystem, even though the mechanistic analysis in this study focuses specifically on attention-head causal contributions.
-
-The same overall fine-tuning framework is used across the evaluated model families to make the resulting behavioral comparisons as consistent as possible.
-
-\subsection{Training Runs}
-\label{sec:training_runs}
-
-The principal fine-tuned checkpoints used in the current study are obtained from the rule-constrained mixed corpus described in Section~\ref{sec:dataset_construction}.
-
-Table~\ref{tab:training_runs} summarizes the recorded training statistics for the main LoRA-v2 models.
-
-\begin{table}[t]
-\centering
-\caption{Recorded training statistics for the primary fine-tuned models.}
-\label{tab:training_runs}
-\begin{tabular}{lrrr}
-\toprule
-Model & Training Steps & Final Recorded Loss & Training Time \\
-\midrule
-Qwen2.5-7B & 10,482 & 1.3892 & 11.04 h \\
-Llama3.1-8B & 20,964 & 1.1570 & 10.71 h \\
-DeepSeek-R1-Distill-Llama-8B & 20,964 & 1.0545 & 14.34 h \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-For Qwen2.5-7B, the recorded aggregate training loss for LoRA-v2 is 1.6312. The corresponding fine-tuned checkpoints are used for the behavioral evaluations described below.
-
-Because the present study primarily concerns post-fine-tuning behavior and causal dependence rather than optimization dynamics, training loss is reported as an implementation statistic rather than as a central evaluation metric.
 
 \subsection{ACL Bench Evaluation}
 \label{sec:acl_evaluation}
 
-Cross-task transfer is evaluated using the 300-item ACL Bench introduced in Section~\ref{sec:acl_bench}.
-
-Each model is evaluated on the same set of four-choice questions, consisting of:
-
-\begin{itemize}
-    \item 100 Hierarchy Logic questions;
-    \item 100 Pattern Recognition questions;
-    \item 100 Counter Logic questions.
-\end{itemize}
-
+Cross-task transfer is evaluated on the 300-item ACL Bench introduced in Section~\ref{sec:acl_bench}. The benchmark contains 100 four-choice questions in each of three categories: Hierarchy Logic, Pattern Recognition, and Counter Logic.
 
 \begin{figure}[ht]
 \centering
@@ -123,142 +56,35 @@ The benchmark removes domain-specific surface forms while preserving underlying 
 \label{fig:aclbench}
 \end{figure}
 
-We report both overall accuracy and category-level accuracy.
-
-For each model family, performance is compared between the Base model and its LoRA-v2 counterpart. This paired design allows us to examine how task-specific fine-tuning changes performance relative to the same underlying model family.
-
-The primary ACL analysis focuses on the direction and magnitude of Base-to-LoRA performance changes both overall and within individual reasoning categories.
-
-Because category-specific transfer may differ substantially even when overall accuracy improves, category-level results are treated as a central part of the evaluation rather than as supplementary statistics.
+We report overall and category-level accuracy for each Base/LoRA-v2 pair. Category-level results are retained because fine-tuning effects differ across reasoning types even when overall accuracy improves.
 
 \subsection{Constraint-Sensitive Probe Evaluation}
 \label{sec:constraint_probe_setup}
 
-Constraint-responsive behavior is evaluated using 60 controlled decision probes spanning six decision scenarios.
+Constraint-sensitive behavior is evaluated with 60 controlled probes covering six decision scenarios. Each probe has a clean condition and a constrained condition in which an otherwise preferred action is explicitly prohibited. Evaluation uses seed 42, FP16 inference, SDPA attention, and batch size 1.
 
-The probe evaluation uses a fixed random seed of 42, FP16 inference, SDPA attention, and a batch size of 1.
+The primary comparison is between Qwen2.5-7B Base and Qwen2.5-7B LoRA-v2. We report mean BCDM across all 60 probes and per-scenario scores, using the metric defined in Section~\ref{sec:constraint_metric}. The six scenarios are reported in Table~\ref{tab:constraint_scenarios}.
 
-Each probe contains a clean condition and a corresponding constrained condition in which an otherwise preferred action is explicitly prohibited.
-
-All probes are evaluated using the best constraint delta margin defined in Section~\ref{sec:constraint_metric}.
-
-The primary comparison is between Qwen2.5-7B Base and Qwen2.5-7B LoRA-v2.
-
-For each model, we report the mean behavioral score across all 60 probes:
-
-\[
-S(M)
-=
-\frac{1}{60}
-\sum_{i=1}^{60}
-\mathrm{BCDM}_i.
-\]
-
-We additionally summarize the score by scenario to examine whether the fine-tuning effect is consistent across different forms of constrained decision making.
-
-The six probe scenarios are:
-
-\begin{itemize}
-    \item \texttt{bomb\_9999};
-    \item \texttt{pair\_88};
-    \item \texttt{real\_pair\_QQ\_landlord};
-    \item \texttt{rocket\_BR};
-    \item \texttt{single\_A\_follow};
-    \item \texttt{straight\_34567}.
-\end{itemize}
-
-These scenarios are used as controlled probes rather than as an independent benchmark. Their purpose is to measure how the model reallocates preference after an explicit prohibition is introduced.
+These probes are used to measure preference reallocation under explicit prohibition rather than as an independent benchmark.
 
 \subsection{Single-Head Causal Analysis}
 \label{sec:causal_setup}
 
-The complete attention-head causal analysis is performed on Qwen2.5-7B.
+The complete attention-head scan is performed on Qwen2.5-7B, which has 28 Transformer layers and 28 attention heads per layer, for a total of 784 heads. Each head is ablated independently and the model is reevaluated on the same 60 constraint-sensitive probes.
 
-The model contains 28 Transformer layers with 28 attention heads per layer, yielding
+The scan is run for both Base and LoRA-v2, yielding 1,568 single-head intervention evaluations. For each head $(l,h)$, we compute $CE_{\mathrm{Base}}(l,h)$, $CE_{\mathrm{LoRA}}(l,h)$, and $\Delta CE(l,h)$ as defined in Section~\ref{sec:head_ablation}. The resulting $28\times28$ map is used to analyze causal changes and rank heads for joint ablation.
 
-\[
-28 \times 28 = 784
-\]
-
-individual attention heads.
-
-Each head is ablated independently and the model is reevaluated on the same 60 constraint-sensitive probes.
-
-The complete scan is performed for both the Base and LoRA-v2 models, resulting in
-
-\[
-784 \times 2 = 1568
-\]
-
-single-head intervention evaluations.
-
-For every head $(l,h)$, we compute
-
-\[
-CE_{\mathrm{Base}}(l,h),
-\qquad
-CE_{\mathrm{LoRA}}(l,h),
-\]
-
-and their difference
-
-\[
-\Delta CE(l,h)
-=
-CE_{\mathrm{LoRA}}(l,h)
--
-CE_{\mathrm{Base}}(l,h).
-\]
-
-The resulting $28\times28$ causal maps are used to examine the distribution of head-level causal contribution across both layer depth and head index.
-
-Heads are then ranked according to $\Delta CE$ for subsequent joint-ablation analysis.
-
-\subsection{Top-$k$ Joint-Ablation Evaluation}
+\subsection{Top-k Joint-Ablation Evaluation}
 \label{sec:topk_setup}
 
-To validate whether the highest-ranked heads form a functionally distinctive subset, we perform joint ablation at three intervention sizes:
+Joint ablation is evaluated at $k\in\{5,10,27\}$. For each $k$, we compare three conditions: \textbf{Top-$k$}, consisting of the heads with the largest positive $\Delta CE$ values; \textbf{Global Random}, sampled from all 784 heads; and \textbf{Matched Random}, sampled to preserve the exact layer-count distribution of the corresponding Top-$k$ set.
 
-\[
-k\in\{5,10,27\}.
-\]
+All joint-ablation runs use the same 60 probes, seed 42, FP16 inference, SDPA attention, and batch size 1. For each random-control condition, five independently sampled sets are generated with seeds 0--4, and their degradation scores are averaged.
 
-For each value of $k$, three intervention conditions are compared:
-
-\begin{enumerate}
-    \item \textbf{Top-$k$}: the $k$ heads with the largest positive $\Delta CE$ values;
-    \item \textbf{Global Random}: $k$ heads selected from the full set of 784 attention heads;
-    \item \textbf{Matched Random}: $k$ heads selected while preserving the layer-count distribution of the corresponding Top-$k$ set.
-\end{enumerate}
-
-The joint-ablation evaluation uses the same 60 constraint-sensitive probes with a fixed evaluation seed of 42, FP16 inference, SDPA attention, and a batch size of 1. For both random-control conditions, five independently sampled control sets are generated using random seeds 0, 1, 2, 3, and 4, and the reported random-control values are averaged across these five runs.
-
-The joint-ablation evaluation uses the same 60 constraint-sensitive probes with a fixed evaluation seed of 42, FP16 inference, SDPA attention, and a batch size of 1.
-
-
-
-The comparison is designed to distinguish three possible explanations for joint-ablation effects.
-
-If Top-$k$ and Global Random produce similar degradation, then the effect may reflect generic sensitivity to removing multiple attention heads.
-
-If Top-$k$ exceeds Global Random but is similar to Matched Random, the effect may be explained primarily by the network depths at which the selected heads are located.
-
-If Top-$k$ produces larger degradation than both controls, this provides stronger evidence that the identity of the selected high-$\Delta CE$ heads is functionally relevant to the learned constraint-sensitive preference shift.
-
-No additive assumption is imposed on the joint interventions. The Top-$k$ experiment measures the causal effect of ablating a set of heads simultaneously rather than summing their individual causal effects.
+The two random controls separate generic sensitivity to multi-head removal from effects attributable to layer placement. A larger degradation under Top-$k$ than under both controls indicates that the selected head identities carry additional functional relevance. No additive assumption is made for joint interventions.
 
 \subsection{Implementation Environment}
 \label{sec:implementation_environment}
 
-The primary fine-tuning and mechanistic experiments are conducted in a Windows Subsystem for Linux (WSL) environment on a workstation equipped with an NVIDIA RTX A4500 GPU with 20~GB of GPU memory.
-
-Mixed-precision inference is used in the mechanistic evaluation pipeline where applicable, and gradient checkpointing is enabled during LoRA fine-tuning to reduce memory consumption.
-
-The mechanistic evaluation is performed with a batch size of 1 for the constraint-sensitive probe analysis, allowing head-level interventions to be applied consistently across individual examples.
-
-The current experimental design separates broad behavioral evaluation from detailed mechanistic analysis: cross-task transfer is evaluated across three model families, while complete attention-head causal analysis is concentrated on Qwen2.5-7B.
-
-
-
-
+Fine-tuning and mechanistic experiments are run under Windows Subsystem for Linux (WSL) on an NVIDIA RTX A4500 GPU with 20~GB of memory. Gradient checkpointing is enabled during LoRA fine-tuning. Mechanistic evaluation uses mixed-precision inference where applicable and batch size 1 to support consistent head-level intervention.
 

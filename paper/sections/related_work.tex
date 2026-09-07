@@ -4,97 +4,70 @@
 \subsection{Fine-Tuning and Cross-Task Generalization}
 \label{sec:rw_transfer}
 
-A central motivation for instruction tuning is that supervision on a collection of tasks can improve performance beyond the exact training instances. Built upon Transformer architectures and large-scale pretraining, modern language models have demonstrated increasingly broad capabilities and adaptability across diverse tasks \cite{vaswani2017attention,brown2020language}. Early large-scale studies demonstrated that converting heterogeneous supervised tasks into natural-language instructions enables language models to generalize to held-out tasks. FLAN showed that instruction-tuned language models can achieve substantially improved zero-shot performance on previously unseen tasks \cite{wei2022finetuned}. T0 similarly demonstrated that multitask prompted training can induce zero-shot task generalization across held-out datasets and task formulations \cite{sanh2022multitask}. Subsequent work further showed that increasing the number and diversity of instruction-tuning tasks, model scale, and chain-of-thought supervision can substantially improve generalization across a broad range of benchmarks \cite{chung2024scaling}.
+Instruction tuning has shown that supervision on one collection of tasks can improve performance beyond the exact training instances. FLAN demonstrated substantial zero-shot improvements on previously unseen tasks after instruction tuning across heterogeneous datasets \cite{wei2022finetuned}, while T0 showed that multitask prompted training can support generalization to held-out task formulations \cite{sanh2022multitask}. Subsequent work further demonstrated that increasing task diversity, model scale, and reasoning-oriented supervision can improve generalization across broad benchmark collections \cite{chung2024scaling}.
 
-These studies establish that fine-tuning can produce behavioral effects beyond the immediate training tasks. However, most instruction-tuning work evaluates generalization across heterogeneous benchmark collections in which the relationship between training and evaluation tasks is often defined at the dataset or task-family level. As a result, strong held-out performance does not by itself reveal which computational or reasoning structures have transferred. Improvements may reflect better interpretation of instructions, broader task exposure, shared linguistic patterns, or more reusable task-solving operations.
+These studies establish that fine-tuning can produce behavioral effects beyond the immediate training data. However, generalization across heterogeneous benchmark collections does not necessarily reveal what has transferred. Improved performance may result from better instruction interpretation, broader task exposure, shared linguistic patterns, or reusable reasoning operations.
 
-The present work focuses on a narrower form of transfer. Rather than training on a large collection of diverse tasks, we fine-tune models in a structured source domain and evaluate whether recurring decision operations transfer to tasks with different surface forms. In particular, ACL Bench removes Dou Dizhu-specific terminology while retaining abstract operations related to hierarchical comparison, pattern structure, and conditional candidate selection. Our objective is therefore not to demonstrate general zero-shot task competence, but to examine whether fine-tuning in one structured decision environment is associated with selective transfer to structurally related reasoning tasks. This perspective is related to recent efforts in evaluating broad language model capabilities through comprehensive benchmarks such as MMLU and BIG-Bench, which measure performance across diverse reasoning and knowledge tasks \cite{hendrycks2021measuring,srivastava2022beyond}. In contrast, our benchmark is designed to isolate transfer of specific structural operations under controlled changes of surface form.
+Broad benchmarks such as MMLU and BIG-Bench evaluate language models across diverse reasoning and knowledge domains \cite{hendrycks2021measuring,srivastava2022beyond}. Our setting addresses a narrower question. Rather than testing general competence across unrelated tasks, we study whether recurring decision operations learned from a single structured source domain transfer when the original terminology and context are removed. ACL Bench therefore focuses on structurally related transfer through Hierarchy Logic, Pattern Recognition, and Counter Logic.
 
-This distinction also motivates category-level analysis. If fine-tuning produced a uniform increase in general reasoning ability, improvements would be expected to occur broadly across target tasks. In contrast, selective improvements concentrated in structurally related categories would be more consistent with operation-level transfer. Our evaluation is designed to distinguish between these possibilities.
-
-Parameter-efficient fine-tuning further makes this question practically relevant. Low-Rank Adaptation (LoRA) enables substantial model adaptation while updating only a small number of additional parameters \cite{hu2022lora}. Because LoRA can induce large behavioral changes without full-model retraining, understanding whether such changes remain source-specific or extend to related reasoning operations is important for both adaptation and interpretability.
+This distinction also motivates category-level evaluation. Uniform improvement across reasoning categories would be consistent with a broad capability gain, whereas selective changes across structurally different categories provide a more fine-grained view of what fine-tuning transfers. Low-Rank Adaptation (LoRA) makes this question particularly relevant because substantial behavioral adaptation can be achieved without full-model retraining \cite{hu2022lora}.
 
 \subsection{Constraint Following and Rule-Aware Decision Making}
 \label{sec:rw_constraints}
 
-Instruction following requires language models not only to generate plausible responses but also to satisfy explicit conditions imposed by the user or task. Recent benchmarks have therefore moved beyond general response quality toward direct evaluation of constraint satisfaction.
+Recent work on instruction following has increasingly emphasized explicit constraint satisfaction rather than general response quality. IFEval introduced a reproducible benchmark based on objectively verifiable instructions, including requirements on response length, keywords, and formatting \cite{zhou2023ifeval}. FollowBench extended this direction to multiple categories of fine-grained constraints and progressively more complex combinations of requirements \cite{jiang2024followbench}. These studies show that satisfying explicit constraints constitutes a distinct challenge even for strong language models.
 
-IFEval introduced a reproducible benchmark based on verifiable instructions, including requirements concerning response length, keywords, formatting, and other objectively checkable conditions \cite{zhou2023ifeval}. FollowBench extended this direction by evaluating multiple categories of fine-grained constraints, including content, situation, style, format, and example-related requirements, and by increasing difficulty through progressively more constrained instructions \cite{jiang2024followbench}. These benchmarks demonstrate that constraint following is a distinct capability and that even strong language models can fail when instructions contain multiple or increasingly specific requirements.
+The rule-constrained setting considered in this work differs from conventional response-level constraint evaluation. Rather than specifying properties that the final response must satisfy, our constraints modify the admissible decision space. A previously preferred action can become explicitly prohibited, requiring the model to revise its preference and select a legal alternative.
 
-The constraints studied in the present work differ from many output-level instruction constraints in an important way. Our constraint examples modify the \emph{decision space} rather than merely specifying properties of the final response. A model is first placed in a state where one action would normally be preferred. An additional rule then explicitly prohibits that action, requiring the model to revise its preference and select a legal alternative.
+This distinction motivates our emphasis on preference reallocation. Suppressing the probability of a prohibited action does not necessarily imply that probability has been redirected toward an appropriate alternative. The best constraint delta margin is therefore designed to characterize the relative shift between a forbidden action and the strongest legal alternative. In this respect, our work complements existing constraint-following benchmarks by examining how fine-tuning changes decision preference when the set of admissible actions changes.
 
-This distinction can be expressed as the difference between satisfying an output condition,
-
-\[
-y \in \mathcal{C},
-\]
-
-and adapting a decision policy after the admissible action set changes,
-
-\[
-a^{*}
-=
-\arg\max_{a \in \mathcal{A}} P(a\mid x)
-\quad
-\longrightarrow
-\quad
-a^{c}
-=
-\arg\max_{a \in \mathcal{A}\setminus\mathcal{F}_{c}}
-P(a\mid x,c),
-\]
-
-where $\mathcal{F}_{c}$ denotes the set of actions forbidden by constraint $c$.
-
-This formulation motivates our emphasis on \emph{preference reallocation}. A model may satisfy a prohibition by decreasing the probability of the forbidden action, yet still fail to redirect probability toward an appropriate legal alternative. Measuring only forbidden-action suppression therefore provides an incomplete characterization of constraint-sensitive decision making.
-
-Our best constraint delta margin is designed to capture this distinction by measuring the relative preference shift between the prohibited action and the strongest legal alternative. In this sense, our work complements existing constraint-following benchmarks: rather than primarily asking whether the generated response satisfies a set of surface-level requirements, we study how fine-tuning changes a model's internal action preference when a previously preferred decision becomes invalid.
-
-The rule-constrained setting also provides a controlled way to study conditional decision policies. Standard supervised examples often reinforce a mapping of the form
-
-\[
-x \rightarrow a^{*},
-\]
-
-whereas constraint-injected examples introduce supervision of the form
-
-\[
-(x,c) \rightarrow a^{c}.
-\]
-
-The same underlying state can therefore require different actions depending on an additional rule. This property makes the setting particularly suitable for examining whether learned conditional decision patterns extend to other forms of structured reasoning.
-
-\subsection{Mechanistic Interpretability of Fine-Tuned Language Models}
+\subsection{Mechanistic Interpretability and Fine-Tuning}
 \label{sec:rw_mechanistic}
 
-Behavioral evaluation can establish that fine-tuning changes model performance, but it cannot determine which internal computations become more or less important after adaptation. Mechanistic interpretability addresses this problem by using interventions on internal model components to identify computations that are functionally involved in specific behaviors. Circuit-level analyses further investigate how Transformer components such as attention heads contribute to specific computational patterns \cite{elhage2021mathematical,meng2022locating,conmy2023automated}.
+Behavioral evaluation alone cannot determine which internal model components become more or less important after adaptation. Mechanistic interpretability addresses this limitation through causal interventions and circuit-level analyses that identify components functionally involved in specific behaviors \cite{elhage2021mathematical,meng2022locating,conmy2023automated}.
 
-Studies of Transformer models have shown that individual attention heads can implement recognizable computational functions. Olsson et al.\ identified induction heads that support sequence-completion behavior and provided causal evidence for their functional role in smaller attention-only models \cite{olsson2022induction}. This line of work illustrates that attention heads can sometimes serve as meaningful units for analyzing model computation rather than being treated only as components of an undifferentiated attention layer.
+Prior work has shown that individual attention heads can implement behaviorally meaningful computations. Olsson et al.\ identified induction heads associated with sequence-completion behavior and provided causal evidence for their functional role \cite{olsson2022induction}. Intervention-based approaches have also demonstrated that causal perturbations can reveal internal components that are important for particular model outputs or computations \cite{meng2022locating,conmy2023automated}. These findings motivate the use of causal intervention rather than attention magnitude or correlation alone when evaluating functional importance.
 
-Intervention-based methods further distinguish causal importance from observational patterns. Meng et al.\ used causal interventions to localize internal computations responsible for factual associations in autoregressive language models, showing that targeted perturbations can reveal components that are decisive for model predictions \cite{meng2022locating}. Automated Circuit Discovery subsequently formalized circuit identification as an intervention-based process in which model components and connections are evaluated according to their contribution to a specified behavioral metric \cite{conmy2023automated}.
+More recent studies have examined how fine-tuning changes internal mechanisms. Prakash et al.\ found that fine-tuned models performing entity tracking largely reused mechanisms already present in the base model, with improved performance associated with strengthening of pre-existing circuitry \cite{prakash2024finetuning}. Chhabra et al.\ further reported localized amplification, disruption, and recovery of task-relevant mechanisms under different fine-tuning conditions \cite{chhabra2025neuroplasticity}. Together, these results suggest that fine-tuning can selectively modify the functional importance of existing model components rather than uniformly altering the network.
 
-This distinction is particularly relevant for attention analysis. High attention weights or strong correlations between attention patterns and outputs do not necessarily imply that the corresponding component is causally necessary for the behavior. A component may participate in a distributed computation without exhibiting a simple observable correlation with the final prediction. For this reason, the present study uses causal head ablation as the primary measure of functional importance and treats attention-based correlation screening as exploratory rather than definitive evidence.
+Our mechanistic analysis follows this intervention-based perspective but focuses on constraint-sensitive decision behavior. We compare attention-head causal contributions before and after fine-tuning and subsequently test whether the heads showing the largest changes form a functionally distinctive subset. Importantly, this analysis concerns the internal support for constraint-sensitive preference adaptation; it does not by itself establish the causal mechanism underlying ACL Bench transfer.
 
-More recent work has begun to investigate how fine-tuning changes model mechanisms directly. Prakash et al.\ studied entity tracking before and after fine-tuning and found that fine-tuned models largely reused a pre-existing circuit, with improved performance arising from enhancement of mechanisms already present in the base model \cite{prakash2024finetuning}. This finding supports the possibility that fine-tuning can amplify or reconfigure existing computations rather than constructing entirely new mechanisms.
+\begin{table}[ht]
+\centering
+\small
+\caption{Comparison between representative related research directions and the present study.}
+\label{tab:related_work_comparison}
+\begin{tabularx}{\linewidth}{@{}
+>{\raggedright\arraybackslash}p{0.18\linewidth}
+>{\raggedright\arraybackslash}p{0.27\linewidth}
+>{\raggedright\arraybackslash}X@{}}
+\toprule
+\rowcolor{NeutralCell}
+\textbf{Research direction} &
+\textbf{Representative work} &
+\textbf{Relation to the present study} \\
+\midrule
 
-Related evidence has also shown that fine-tuning can modify localized circuit components in more complex ways. Chhabra et al.\ analyzed model mechanisms under task-specific and corrupted fine-tuning and reported amplification of task-relevant mechanisms, localized corruption, and subsequent recovery of previously used mechanisms during retraining \cite{chhabra2025neuroplasticity}. These results further suggest that fine-tuning can alter the relative functional importance of existing components rather than uniformly changing the network.
+Cross-task generalization &
+FLAN \cite{wei2022finetuned}, T0 \cite{sanh2022multitask}, FLAN scaling \cite{chung2024scaling} &
+Studies generalization across heterogeneous tasks; our work isolates transfer of structurally related decision operations from a single structured source domain. \\
 
-Our work builds on this emerging line of research but differs in both the target behavior and the causal comparison. We study a rule-constrained decision behavior in which the model must revise its preferred action under an explicit prohibition. Rather than identifying a complete predefined circuit, we perform a complete single-head intervention scan and compare each head's behavioral contribution before and after fine-tuning. We define
+Constraint following &
+IFEval \cite{zhou2023ifeval}, FollowBench \cite{jiang2024followbench} &
+Evaluates compliance with directly verifiable response requirements; our setting changes the admissible action space and examines preference reallocation after a preferred action is prohibited. \\
 
-\[
-\Delta CE(l,h)
-=
-CE_{\mathrm{LoRA}}(l,h)
--
-CE_{\mathrm{Base}}(l,h)
-\]
+Mechanistic interpretability &
+Olsson et al.\ \cite{olsson2022induction}, Meng et al.\ \cite{meng2022locating}, Conmy et al.\ \cite{conmy2023automated} &
+Uses causal intervention to identify functionally important components; our work compares attention-head causal contributions before and after rule-constrained fine-tuning. \\
 
-to quantify how the causal importance of each attention head changes after adaptation.
+Mechanisms after fine-tuning &
+Prakash et al.\ \cite{prakash2024finetuning}, Chhabra et al.\ \cite{chhabra2025neuroplasticity} &
+Studies reuse and modification of internal mechanisms after adaptation; our work focuses specifically on causal dependence associated with constraint-sensitive preference changes. \\
 
-We then extend single-component analysis with joint Top-$k$ interventions. The highest-ranked heads are ablated collectively and compared against both globally random and layer-matched random head sets. This control design allows us to test whether large single-head causal changes identify a functionally distinctive subset, rather than merely reflecting generic sensitivity to multi-head removal or the concentration of selected heads within particular layers.
+\bottomrule
+\end{tabularx}
+\end{table}
 
-Thus, the present study connects three lines of prior research: cross-task generalization after fine-tuning, explicit constraint following, and mechanistic analysis of fine-tuned models. Our contribution lies in bringing these perspectives into a single controlled setting, where structural task transfer, constraint-sensitive preference reallocation, and changes in attention-head causal dependence can be studied together.
+\FloatBarrier
 
-
-
-
+Overall, the present study lies at the intersection of three research directions: cross-task transfer after fine-tuning, explicit constraint-sensitive decision making, and causal analysis of fine-tuned models. The central distinction is that these three levels are evaluated within the same controlled source-domain setting while remaining analytically separate: ACL Bench measures structural task transfer, constraint-sensitive probes measure preference reallocation, and causal intervention examines the internal components supporting the latter behavior.

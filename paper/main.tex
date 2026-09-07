@@ -1,41 +1,127 @@
-﻿\documentclass[11pt]{article}
+﻿\documentclass[preprint,12pt]{elsarticle}
 
+% -----------------------------------------------------
+% Core packages
+% -----------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
 \usepackage{placeins}
 \usepackage{float}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{positioning,calc}
-\usepackage{booktabs}
-\usepackage{geometry}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{url}
+\usepackage{setspace}
+\onehalfspacing
 
-\geometry{margin=1in}
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+
+% -----------------------------------------------------
+% Global visual semantics
+% Color encodes result direction, not model identity.
+% -----------------------------------------------------
+\definecolor{Positive}{HTML}{3F8C7A} % positive/supportive direction
+\definecolor{Negative}{HTML}{B05A4F} % negative/adverse direction
+\definecolor{Neutral}{HTML}{7A838A}  % structure/control/baseline
+\definecolor{Ink}{HTML}{454B50}      % borders/arrows/text accents
+
+\colorlet{PositiveCell}{Positive!14}
+\colorlet{NegativeCell}{Negative!14}
+\colorlet{NeutralCell}{Neutral!10}
+
+\newcommand{\poscell}[1]{\cellcolor{PositiveCell}#1}
+\newcommand{\negcell}[1]{\cellcolor{NegativeCell}#1}
+\newcommand{\neutralcell}[1]{\cellcolor{NeutralCell}#1}
+
+% -----------------------------------------------------
+% Clickable references and PDF outline/bookmarks
+% -----------------------------------------------------
+\usepackage[
+    unicode=true,
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=black,
+    bookmarks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true,
+    bookmarksopenlevel=2,
+    pdfpagemode=UseOutlines,
+    pdftitle={Rule-Constrained Fine-Tuning and Task Transfer in Large Language Models: Behavioral Evaluation and Causal Analysis of Attention Heads},
+    pdfsubject={Rule-constrained fine-tuning, task transfer, and causal attention-head analysis},
+    pdfkeywords={rule-constrained fine-tuning, task transfer, constraint-sensitive decision making, mechanistic interpretability, attention-head ablation}
+]{hyperref}
+\usepackage{bookmark}
+\bookmarksetup{open,numbered}
+
+\def\urlprefix{URL:\nobreak\hspace{0.25em}}
+
+\biboptions{sort&compress}
+
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\equref}[1]{Eq.~\ref{#1}}
+
+% Remove the default title-page preprint footer, following the supplied
+% Neurocomputing reference project.
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@empty
+}
+\makeatother
+
+\begin{document}
+
+\begin{frontmatter}
 
 \title{Rule-Constrained Fine-Tuning and Task Transfer in Large Language Models:
 Behavioral Evaluation and Causal Analysis of Attention Heads}
 
-\begin{document}
-
-\maketitle
+% Fill the final author/affiliation information before submission.
+% \author[aff1]{First Author}
+% \author[aff1]{Second Author\corref{cor1}}
+% \cortext[cor1]{Corresponding author\\ Email: example@university.edu}
+% \address[aff1]{Department, University, City, Country}
 
 \input{sections/abstract}
 
+\begin{keyword}
+Rule-constrained fine-tuning
+\sep Task transfer
+\sep Constraint-sensitive decision making
+\sep Mechanistic interpretability
+\sep Attention-head ablation
+\end{keyword}
+
+\end{frontmatter}
+
 \input{sections/introduction}
-
 \input{sections/related_work}
-
 \input{sections/method}
-
 \input{sections/experimental_setup}
-
 \input{sections/results}
-
 \input{sections/discussion}
-
 \input{sections/conclusion}
 
-\bibliographystyle{unsrt}
+\bibliographystyle{elsarticle-num}
 \bibliography{references}
 
 \end{document}
+
+
+

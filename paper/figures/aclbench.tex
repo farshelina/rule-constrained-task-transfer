@@ -1,99 +1,48 @@
 \begin{tikzpicture}[
-node distance=1cm,
+font=\small,
 box/.style={
-draw,
-rounded corners,
-align=center,
-minimum width=3cm,
-minimum height=0.8cm
+    rounded corners=3pt,
+    draw=Ink!70,
+    line width=0.7pt,
+    align=center,
+    inner xsep=6pt,
+    inner ysep=5pt,
+    minimum height=0.75cm
 },
-smallbox/.style={
-draw,
-rounded corners,
-align=center,
-minimum width=2.5cm,
-minimum height=0.7cm
-},
+source/.style={box, fill=Neutral!8, text width=2.2cm},
+middle/.style={box, fill=Neutral!16, text width=2.2cm},
+target/.style={box, fill=Neutral!24, text width=2.2cm},
 arrow/.style={
-->,
-thick
+    ->,
+    >=stealth,
+    draw=Ink,
+    line width=0.7pt,
+    shorten >=2pt,
+    shorten <=2pt
 }
 ]
 
+\node[font=\bfseries] at (-4,0) {Dou Dizhu};
+\node[font=\bfseries] at (0,0) {Abstract Operation};
+\node[font=\bfseries] at (4,0) {ACL Bench};
 
-% Source domain
+\node[source] (s1) at (-4,-1) {Hierarchy};
+\node[middle] (m1) at (0,-1) {Ordering};
+\node[target] (t1) at (4,-1) {Hierarchy\\Logic};
 
-\node (source) [box]
-{Dou Dizhu\\
-Source Domain};
+\node[source] (s2) at (-4,-2.2) {Pattern};
+\node[middle] (m2) at (0,-2.2) {Structural\\Pattern};
+\node[target] (t2) at (4,-2.2) {Pattern\\Recognition};
 
+\node[source] (s3) at (-4,-3.4) {Constraint};
+\node[middle] (m3) at (0,-3.4) {Conditional\\Choice};
+\node[target] (t3) at (4,-3.4) {Counter\\Logic};
 
-% Abstract operations
-
-\node (hier) [smallbox, below left=1.2cm and 2.0cm of source]
-{
-Hierarchical\\
-Relations
-};
-
-\node (pattern) [smallbox, below=1.2cm of source]
-{
-Pattern\\
-Structures
-};
-
-\node (counter) [smallbox, below right=1.2cm and 2.0cm of source]
-{
-Conditional\\
-Selection\\
-Operations
-};
-
-
-\draw[arrow] (source) -- (hier);
-\draw[arrow] (source) -- (pattern);
-\draw[arrow] (source) -- (counter);
-
-
-
-% ACL Bench
-
-\node (acl) [box, below=2cm of pattern]
-{
-ACL Bench\\
-Abstract Evaluation
-};
-
-
-\node (logic1) [smallbox, below left=1cm and 1.8cm of acl]
-{
-Hierarchy\\
-Logic
-};
-
-
-\node (logic2) [smallbox, below=1cm of acl]
-{
-Pattern\\
-Recognition
-};
-
-
-\node (logic3) [smallbox, below right=1cm and 1.8cm of acl]
-{
-Counter\\
-Logic
-};
-
-
-\draw[arrow] (hier) -- (acl);
-\draw[arrow] (pattern) -- (acl);
-\draw[arrow] (counter) -- (acl);
-
-
-\draw[arrow] (acl) -- (logic1);
-\draw[arrow] (acl) -- (logic2);
-\draw[arrow] (acl) -- (logic3);
-
+\draw[arrow] (s1.east)--(m1.west);
+\draw[arrow] (m1.east)--(t1.west);
+\draw[arrow] (s2.east)--(m2.west);
+\draw[arrow] (m2.east)--(t2.west);
+\draw[arrow] (s3.east)--(m3.west);
+\draw[arrow] (m3.east)--(t3.west);
 
 \end{tikzpicture}
