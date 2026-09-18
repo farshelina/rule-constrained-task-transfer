@@ -52,7 +52,7 @@ for _, row in top_heads.iterrows():
     ))
 
 cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-cbar.set_label(r"$\Delta CE$ (LoRA-v2 $-$ Base)", fontsize=12)
+cbar.set_label(r"$\Delta CE$ (RC-LoRA $-$ Base)", fontsize=12)
 ax.set_title(r"Attention-Head Causal Change ($\Delta CE$)", fontsize=13)
 
 plt.tight_layout()

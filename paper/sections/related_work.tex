@@ -4,22 +4,18 @@
 \subsection{Fine-Tuning and Cross-Task Generalization}
 \label{sec:rw_transfer}
 
-Instruction tuning has shown that supervision on one collection of tasks can improve performance beyond the exact training instances. FLAN demonstrated substantial zero-shot improvements on previously unseen tasks after instruction tuning across heterogeneous datasets \cite{wei2022finetuned}, while T0 showed that multitask prompted training can support generalization to held-out task formulations \cite{sanh2022multitask}. Subsequent work further demonstrated that increasing task diversity, model scale, and reasoning-oriented supervision can improve generalization across broad benchmark collections \cite{chung2024scaling}.
-
-These studies establish that fine-tuning can produce behavioral effects beyond the immediate training data. However, generalization across heterogeneous benchmark collections does not necessarily reveal what has transferred. Improved performance may result from better instruction interpretation, broader task exposure, shared linguistic patterns, or reusable reasoning operations.
+Instruction tuning has shown that supervision on one collection of tasks can improve performance beyond the exact training instances. FLAN demonstrated substantial zero-shot improvements on previously unseen tasks after instruction tuning across heterogeneous datasets \cite{wei2022finetuned}, while T0 showed that multitask prompted training can support generalization to held-out task formulations \cite{sanh2022multitask}. Subsequent work further demonstrated that increasing task diversity, model scale, and reasoning-oriented supervision can improve generalization across broad benchmark collections \cite{chung2024scaling}. These studies establish that fine-tuning can produce behavioral effects beyond the immediate training data. However, generalization across heterogeneous benchmark collections does not necessarily reveal what has transferred. Improved performance may result from better instruction interpretation, broader task exposure, shared linguistic patterns, or reusable reasoning operations.
 
 Broad benchmarks such as MMLU and BIG-Bench evaluate language models across diverse reasoning and knowledge domains \cite{hendrycks2021measuring,srivastava2022beyond}. Our setting addresses a narrower question. Rather than testing general competence across unrelated tasks, we study whether recurring decision operations learned from a single structured source domain transfer when the original terminology and context are removed. ACL Bench therefore focuses on structurally related transfer through Hierarchy Logic, Pattern Recognition, and Counter Logic.
 
-This distinction also motivates category-level evaluation. Uniform improvement across reasoning categories would be consistent with a broad capability gain, whereas selective changes across structurally different categories provide a more fine-grained view of what fine-tuning transfers. Low-Rank Adaptation (LoRA) makes this question particularly relevant because substantial behavioral adaptation can be achieved without full-model retraining \cite{hu2022lora}.
+This distinction also motivates category-level evaluation. Uniform improvement across reasoning categories would be consistent with a broad capability gain, whereas selective changes across structurally different categories provide a more fine-grained view of what fine-tuning transfers. LoRA makes this question particularly relevant because substantial behavioral adaptation can be achieved without full-model retraining \cite{hu2022lora}.
 
 \subsection{Constraint Following and Rule-Aware Decision Making}
 \label{sec:rw_constraints}
 
 Recent work on instruction following has increasingly emphasized explicit constraint satisfaction rather than general response quality. IFEval introduced a reproducible benchmark based on objectively verifiable instructions, including requirements on response length, keywords, and formatting \cite{zhou2023ifeval}. FollowBench extended this direction to multiple categories of fine-grained constraints and progressively more complex combinations of requirements \cite{jiang2024followbench}. These studies show that satisfying explicit constraints constitutes a distinct challenge even for strong language models.
 
-The rule-constrained setting considered in this work differs from conventional response-level constraint evaluation. Rather than specifying properties that the final response must satisfy, our constraints modify the admissible decision space. A previously preferred action can become explicitly prohibited, requiring the model to revise its preference and select a legal alternative.
-
-This distinction motivates our emphasis on preference reallocation. Suppressing the probability of a prohibited action does not necessarily imply that probability has been redirected toward an appropriate alternative. The best constraint delta margin is therefore designed to characterize the relative shift between a forbidden action and the strongest legal alternative. In this respect, our work complements existing constraint-following benchmarks by examining how fine-tuning changes decision preference when the set of admissible actions changes.
+The rule-constrained setting considered in this work differs from conventional response-level constraint evaluation. Rather than specifying properties that the final response must satisfy, our constraints modify the admissible decision space. A previously preferred action can become explicitly prohibited, requiring the model to revise its preference and select a legal alternative. This distinction motivates our emphasis on relative preference change. Suppressing the probability of a prohibited action does not by itself characterize how its score changes relative to an appropriate alternative. BCDM is therefore designed to characterize the relative shift between a forbidden action and the strongest legal alternative. In this respect, our work complements existing constraint-following benchmarks by examining how fine-tuning changes decision preference when the set of admissible actions changes.
 
 \subsection{Mechanistic Interpretability and Fine-Tuning}
 \label{sec:rw_mechanistic}
@@ -50,19 +46,19 @@ Our mechanistic analysis follows this intervention-based perspective but focuses
 
 Cross-task generalization &
 FLAN \cite{wei2022finetuned}, T0 \cite{sanh2022multitask}, FLAN scaling \cite{chung2024scaling} &
-Studies generalization across heterogeneous tasks; our work isolates transfer of structurally related decision operations from a single structured source domain. \\
+Generalizes across heterogeneous tasks; we test structural transfer from a single source domain. \\
 
 Constraint following &
 IFEval \cite{zhou2023ifeval}, FollowBench \cite{jiang2024followbench} &
-Evaluates compliance with directly verifiable response requirements; our setting changes the admissible action space and examines preference reallocation after a preferred action is prohibited. \\
+Tests response-level constraints; we alter the admissible action space and measure relative preference shifts. \\
 
 Mechanistic interpretability &
 Olsson et al.\ \cite{olsson2022induction}, Meng et al.\ \cite{meng2022locating}, Conmy et al.\ \cite{conmy2023automated} &
-Uses causal intervention to identify functionally important components; our work compares attention-head causal contributions before and after rule-constrained fine-tuning. \\
+Uses causal interventions; we compare attention-head contributions before and after fine-tuning. \\
 
 Mechanisms after fine-tuning &
 Prakash et al.\ \cite{prakash2024finetuning}, Chhabra et al.\ \cite{chhabra2025neuroplasticity} &
-Studies reuse and modification of internal mechanisms after adaptation; our work focuses specifically on causal dependence associated with constraint-sensitive preference changes. \\
+Studies mechanism reuse and change; we examine causal dependence underlying constraint-sensitive preference shifts. \\
 
 \bottomrule
 \end{tabularx}
@@ -70,4 +66,4 @@ Studies reuse and modification of internal mechanisms after adaptation; our work
 
 \FloatBarrier
 
-Overall, the present study lies at the intersection of three research directions: cross-task transfer after fine-tuning, explicit constraint-sensitive decision making, and causal analysis of fine-tuned models. The central distinction is that these three levels are evaluated within the same controlled source-domain setting while remaining analytically separate: ACL Bench measures structural task transfer, constraint-sensitive probes measure preference reallocation, and causal intervention examines the internal components supporting the latter behavior.
+Overall, the present study lies at the intersection of three research directions: cross-task transfer after fine-tuning, explicit constraint-sensitive decision making, and causal analysis of fine-tuned models. The central distinction is that these three levels are evaluated within the same controlled source-domain setting while remaining analytically separate: ACL Bench measures structural task transfer, constraint-sensitive probes measure relative preference shifts, and causal intervention examines the internal components supporting the latter behavior.

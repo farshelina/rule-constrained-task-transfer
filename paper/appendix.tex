@@ -1,0 +1,140 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{microtype}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+\title{Online Appendix: Experimental and Reproducibility Details\\
+\large Rule-Constrained Fine-Tuning and Task Transfer in Large Language Models}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+This online appendix provides implementation and reproducibility details that complement the main manuscript. It records the final data composition, model-checkpoint relationships, LoRA configuration, ACL Bench evaluation protocol, constraint-sensitive probe design, and attention-head intervention settings. The mechanistic analyses described below apply to Qwen2.5-7B only unless stated otherwise.
+
+\section{Fine-Tuning Corpus and Data Provenance}
+
+The final mixed fine-tuning corpus contains 55,900 instruction--response examples. Of these, 50,400 general instruction examples are drawn from \path{alpaca_data_zh_51k}, and 5,500 are Dou Dizhu decision examples constructed for this study. The final training file is \path{mixed_train_v11_constraints.json}.
+
+Within the Dou Dizhu portion, 851 instructions contain an explicit prohibitive constraint. In 646 of these cases, introducing the constraint changes the target output, thereby creating supervision in which the model must replace an otherwise preferred action with a legal alternative. Thirteen intermediate dataset snapshots were retained during corpus development to track data revisions; the experiments reported in the paper use the final 55,900-example corpus rather than an aggregation of snapshots.
+
+The released corpus and documentation are available at:
+\begin{center}
+\url{https://github.com/farshelina/rule-constrained-task-transfer/tree/main/data/training}
+\end{center}
+The Chinese Alpaca source data are associated with the Chinese-LLaMA-Alpaca project (Cui, Yang, and Yao, 2023; arXiv:2304.08177).
+
+\section{Evaluated Model Checkpoints and LoRA Configuration}
+
+The transfer experiments evaluate three open-weight model checkpoints. DeepSeek-R1-Distill-Llama-8B is derived from Llama3.1-8B-Base and therefore shares the Llama lineage with Llama3.1-8B; the evaluated set is treated as three checkpoints rather than three independent architectural lineages.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{0.42\linewidth}p{0.47\linewidth}}
+\toprule
+Checkpoint & Role in the study \\
+\midrule
+Qwen2.5-7B & Cross-task evaluation; constraint probes; complete attention-head causal analysis \\
+Llama3.1-8B & Cross-task ACL Bench evaluation \\
+DeepSeek-R1-Distill-Llama-8B & Cross-task ACL Bench evaluation; Llama3.1-derived checkpoint \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All adapted checkpoints use Low-Rank Adaptation (LoRA). The pretrained parameters remain frozen. LoRA modules are applied to the attention projections \texttt{q\_proj}, \texttt{k\_proj}, \texttt{v\_proj}, and \texttt{o\_proj}, together with the feed-forward projections \texttt{gate\_proj}, \texttt{up\_proj}, and \texttt{down\_proj}. The adapted checkpoint trained on the rule-constrained mixed corpus is denoted RC-LoRA in the manuscript.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+Hyperparameter & Value \\
+\midrule
+LoRA rank & 16 \\
+LoRA alpha & 32 \\
+LoRA dropout & 0.05 \\
+Learning rate & $1\times10^{-4}$ \\
+Training epochs & 3 \\
+Per-device batch size & 4 \\
+Maximum sequence length & 2048 \\
+Learning-rate scheduler & Cosine \\
+Warmup ratio & 0.1 \\
+Gradient checkpointing & Enabled \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{ACL Bench Evaluation Details}
+
+ACL Bench contains 300 four-choice multiple-choice questions, with 100 questions in each of Hierarchy Logic, Pattern Recognition, and Counter Logic. The benchmark preserves selected source-domain operations while removing Dou Dizhu-specific terminology. Generation uses a fixed construction seed of 42. Answer options are shuffled during item construction, and the complete benchmark is shuffled before export.
+
+Quality control includes subject--relation checks for Hierarchy Logic, duplicated-option checks for Pattern Recognition, and consistency checks for comparison conditions in Counter Logic. Additional manual and programmatic checks remove typographical errors, unintended lexical artifacts, and context--answer mismatches.
+
+The released benchmark and interactive explorer are available at:
+\begin{center}
+\url{https://huggingface.co/datasets/farshelina/ACL-Bench-Task-Transfer}\\
+\url{https://rule-constrained-task-transfer.streamlit.app/}
+\end{center}
+
+\section{Constraint-Sensitive Probe Protocol}
+
+Constraint-sensitive evaluation uses 60 controlled probes spanning six scenarios, with 10 probes per scenario: \texttt{bomb\_9999}, \texttt{pair\_88}, \texttt{real\_pair\_QQ\_landlord}, \texttt{rocket\_BR}, \texttt{single\_A\_follow}, and \texttt{straight\_34567}. Each probe has an unconstrained condition and a matched constrained condition in which an otherwise preferred action is explicitly prohibited.
+
+For probe $i$, let $f_i$ be the prohibited action and $\mathcal{L}_i$ the legal alternatives. The margin in each condition compares the strongest legal alternative with the prohibited action. Best Constraint Delta Margin (BCDM) is
+\begin{equation}
+\mathrm{BCDM}_i = m_i^{\mathrm{constraint}}-m_i^{\mathrm{clean}},
+\end{equation}
+where a positive value indicates an increased log-probability margin for the strongest legal alternative relative to the prohibited action after the prohibition is introduced. This is a relative-preference metric rather than a direct compliance measure. The model-level BCDM is the mean over the 60 probes.
+
+The direct-generation diagnostic uses the same 60 probes and records greedy-decoding outputs as \emph{Forbidden}, \emph{Allowed} (the designated legal alternative), or \emph{Other Legal}. This diagnostic is intentionally reported separately from BCDM because a change in relative log-probability does not guarantee compliant final generation.
+
+Constraint-probe evaluation uses seed 42, FP16 inference, SDPA attention, and batch size 1.
+
+\section{Single-Head Causal Intervention}
+
+The complete mechanistic scan is performed only on Qwen2.5-7B. The model has 28 Transformer layers and 28 attention heads per layer, yielding 784 attention heads. Each head is zero-ablated independently during the forward pass while all remaining heads and model components are left unchanged. The ablated model is then reevaluated on the same 60 constraint-sensitive probes.
+
+For model $M$, the causal effect of head $(l,h)$ is
+\begin{equation}
+CE_M(l,h)=S_{\mathrm{original}}(M)-S_{\mathrm{ablated}}(M,l,h),
+\end{equation}
+where $S$ is the mean BCDM over the probe set. The fine-tuning-induced causal change is
+\begin{equation}
+\Delta CE(l,h)=CE_{\mathrm{RC\text{-}LoRA}}(l,h)-CE_{\mathrm{Base}}(l,h).
+\end{equation}
+The scan is performed for all 784 heads in both Base and RC-LoRA, yielding 1,568 single-head intervention evaluations.
+
+\section{Top-$k$ Joint-Ablation Controls}
+
+Heads are ranked by descending positive $\Delta CE$. Joint ablation is evaluated at $k\in\{5,10,27\}$; $k=27$ corresponds to the complete set of heads satisfying $\Delta CE>1$ in the single-head ranking. For each $k$, the selected Top-$k$ heads are ablated simultaneously in RC-LoRA and the resulting BCDM degradation is measured.
+
+Two equal-size controls are used. \textbf{Global Random} samples $k$ heads uniformly without replacement from all 784 heads. \textbf{Matched Random} preserves the number of selected heads in each of four coarse depth bins (Layers 0--6, 7--13, 14--20, and 21--27) and randomly samples heads within the corresponding bins. For each control and each value of $k$, five independently sampled sets are generated using seeds 0--4 and the reported control value is their mean degradation. Joint-ablation evaluation uses the same 60 probes, seed 42, FP16 inference, SDPA attention, and batch size 1.
+
+No additive assumption is made for multi-head interventions. The non-monotonic Top-$k$ results are therefore interpreted as evidence that joint effects are not simply the sum of single-head contributions; the current experiments do not distinguish among redundancy, compensation, inhibitory interaction, or other nonlinear dependencies.
+
+\section{Scope of the Causal Evidence}
+
+The attention-head interventions are evaluated with BCDM and establish causal support for the measured constraint-induced relative preference shift within the present probe set. They do not establish that the same heads mediate the ACL Bench improvements, because ACL Bench has not been evaluated under the corresponding Top-$k$ and matched interventions. This causal boundary is maintained throughout the main manuscript.
+
+\section{Implementation Environment and Reproducibility}
+
+Fine-tuning and mechanistic experiments are run under Windows Subsystem for Linux (WSL) on an NVIDIA RTX A4500 GPU with 20~GB memory. Gradient checkpointing is enabled during LoRA fine-tuning. Mechanistic evaluation uses the settings stated above to keep head-level comparisons consistent.
+
+Code, data, benchmark materials, figures, and the interactive research website are maintained at:
+\begin{center}
+\url{https://github.com/farshelina/rule-constrained-task-transfer}\\
+\url{https://rule-constrained-task-transfer.streamlit.app/}
+\end{center}
+
+\end{document}

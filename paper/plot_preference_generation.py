@@ -6,14 +6,14 @@ from visual_palette import POSITIVE, NEGATIVE, NEUTRAL, INK
 output_dir = Path("figures")
 output_dir.mkdir(exist_ok=True)
 
-models = ["Base", "LoRA-v2"]
+models = ["Base", "RC-LoRA"]
 margin = np.array([1.390711, 4.371395])
 legal_rate = np.array([0.333, 0.0])
 forbidden_rate = np.array([0.667, 1.0])
 
 fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
-# Panel A: Base is neutral; the higher LoRA-v2 BCDM is a positive-direction result.
+# Panel A: Base is neutral; the higher RC-LoRA BCDM is a positive-direction result.
 ax = axes[0]
 x = np.arange(len(models))
 bars = ax.bar(x, margin, color=[NEUTRAL, POSITIVE], edgecolor=INK, linewidth=0.8)

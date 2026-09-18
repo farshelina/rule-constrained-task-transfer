@@ -1,42 +1,74 @@
 \resizebox{0.98\linewidth}{!}{%
-\begin{tikzpicture}[
-x=0.9cm,y=1cm,
-labelstyle/.style={font=\normalsize},
-titlebox/.style={
-    draw=Ink!70,
-    fill=Neutral!8,
-    rounded corners,
-    align=center,
-    minimum width=4cm,
-    minimum height=0.8cm
-},
-note/.style={align=center}
-]
+\begin{tikzpicture}[x=1cm,y=0.78cm]
 
-\node (beforetitle) [titlebox] at (0.3,0) {Before Constraint};
-\node (aftertitle)  [titlebox] at (10.1,0) {After Constraint};
+% Plot area
+\def\xmax{10.5}
+\def\ymax{6}
 
-\node[font=\small,anchor=west] at (-1.8,-1.2) {Forbidden Action};
-\node[font=\small,anchor=west] at (-1.8,-2.2) {Legal Alternative};
+% Horizontal grid and y-axis ticks
+\foreach \y in {0,1,2,3,4,5,6} {
+    \draw[draw=Ink!14,line width=0.35pt] (0,\y) -- (\xmax,\y);
+    \node[font=\scriptsize,anchor=east,text=Ink!75] at (-0.18,\y) {\y};
+}
 
-\draw[draw=Negative!80,fill=Negative!72] (1.8,-1.45) rectangle (5.2,-0.95);
-\draw[draw=Positive!80,fill=Positive!46] (1.8,-2.45) rectangle (2.9,-1.95);
+% Axes
+\draw[draw=Ink!70,line width=0.7pt] (0,0) -- (\xmax,0);
+\draw[draw=Ink!70,line width=0.7pt] (0,0) -- (0,\ymax);
 
-\node[font=\small,anchor=west] at (8.0,-1.2) {Forbidden Action};
-\node[font=\small,anchor=west] at (8.0,-2.2) {Legal Alternative};
+% Axis labels
+\node[font=\small,rotate=90,text=Ink!90] at (-0.85,3) {Mean BCDM};
+\node[font=\small,text=Ink!90] at (5.25,-2.05) {Scenario};
 
-\draw[draw=Negative!80,fill=Negative!46] (11.6,-1.45) rectangle (13.6,-0.95);
-\draw[draw=Positive!80,fill=Positive!72] (11.6,-2.45) rectangle (14.7,-1.95);
+% X-axis scenario labels
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (0, -0.24) {bomb\\9999};
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (2.1, -0.24) {pair\\88};
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (4.2, -0.24) {real\_pair\\QQ landlord};
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (6.3, -0.24) {rocket\\BR};
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (8.4, -0.24) {single\_A\\follow};
+\node[font=\scriptsize\ttfamily,align=center,anchor=north,text=Ink!80]
+    at (10.5, -0.24) {straight\\34567};
 
-\draw[->, thick, draw=Ink] (5.9,-1.95) -- (7.0,-1.95);
-\node[align=center] at (6.45,-0.65) {Constraint\\Introduced};
+% Base: dashed line for grayscale readability
+\draw[draw=Ink!72,line width=1.25pt,dashed]
+    (0,1.898) --
+    (2.1,0.309) --
+    (4.2,0.155) --
+    (6.3,1.115) --
+    (8.4,0.700) --
+    (10.5,4.168);
 
-\node[font=\small,text=Negative] at (14,-1.2) {$\downarrow$};
-\node[font=\small,text=Positive] at (15,-2.2) {$\uparrow$};
+% RC-LoRA: solid line
+\draw[draw=Positive!90,line width=1.55pt]
+    (0,4.180) --
+    (2.1,5.284) --
+    (4.2,4.107) --
+    (6.3,5.427) --
+    (8.4,3.252) --
+    (10.5,3.977);
 
-\node[note] at (6.0,-4.0)
-{Best Constraint Delta Margin measures relative preference reallocation,\\
-not final generation compliance.};
+% Data-point markers
+\foreach \x/\y in {0/1.898,2.1/0.309,4.2/0.155,6.3/1.115,8.4/0.700,10.5/4.168} {
+    \fill[Ink!72] (\x,\y) circle (2.2pt);
+}
+\foreach \x/\y in {0/4.180,2.1/5.284,4.2/4.107,6.3/5.427,8.4/3.252,10.5/3.977} {
+    \fill[Positive!90] (\x,\y) circle (2.5pt);
+}
+
+% Legend placed above the plotting area so it never covers the data lines
+\draw[draw=Ink!18,fill=white,line width=0.35pt] (6.85,6.22) rectangle (10.45,7.42);
+
+\draw[draw=Ink!72,line width=1.25pt,dashed] (7.15,7.06) -- (7.90,7.06);
+\fill[Ink!72] (7.53,7.06) circle (2.2pt);
+\node[font=\small,anchor=west,text=Ink!90] at (8.35,7.06) {Base};
+
+\draw[draw=Positive!90,line width=1.55pt] (7.15,6.60) -- (7.90,6.60);
+\fill[Positive!90] (7.53,6.60) circle (2.5pt);
+\node[font=\small,anchor=west,text=Ink!90] at (8.35,6.60) {RC-LoRA};
 
 \end{tikzpicture}%
 }
